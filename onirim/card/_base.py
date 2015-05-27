@@ -8,9 +8,14 @@ class Color(util.AutoNumberEnum):
 
 
 class Card:
+    """A card in onirim."""
+
+    _color = None
+
     @property
     def color(self):
-        return None
+        """Color of a card."""
+        return self._color
 
     @property
     def kind(self):
@@ -24,7 +29,3 @@ class ColorCard(Card):
         if not isinstance(color, Color):
             raise ValueError()
         self._color = color
-
-    @property
-    def color(self):
-        return self._color
