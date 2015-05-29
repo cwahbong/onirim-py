@@ -1,6 +1,23 @@
+"""Location cards."""
+
 from onirim.card._base import ColorCard
+from onirim import exception
+from onirim import util
+
+
+class LocationKind(util.AutoNumberEnum):
+    sun = ()
+    moon = ()
+    key = ()
+
 
 class _Location(ColorCard):
+    """Location card without special effect."""
+
+    def __init__(self, color, kind=None):
+        super().__init__(color)
+        if kind is not None:
+            self._kind = kind
 
     def drawn(self, agent, content):
         content.add_hand(self)
@@ -13,13 +30,36 @@ class _Location(ColorCard):
             if False: # Three cards with same color
                 pass
         else:
-            raise Onirim()
+            raise exception.Onirim()
+
+    def _on_discard(self, agent, content):
+        pass
+
+    def discard(self, agent, content):
+        # TODO remove from content.hand
+        content.deck.put_discard(self)
+        self._on_discard(agent, content)
+
 
 def sun(color):
-    pass
+    """Make a sun location card."""
+    return _Location(color, LocationKind.sun)
+
 
 def moon(color):
-    pass
+    """Make a moon location card."""
+    return _Location(color, LocationKind.moon)
+
+
+class _KeyLocation(_Location):
+
+    _kind = LocationKind.key
+
+    def _on_discard(self, agent, content):
+        # TODO draw 5 card, discard 1, and put 4 back.
+        pass
+
 
 def key(color):
-    pass
+    """Make a key location card."""
+    return _KeyLocation(color)

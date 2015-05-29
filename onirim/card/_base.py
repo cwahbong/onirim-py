@@ -11,6 +11,7 @@ class Card:
     """A card in onirim."""
 
     _color = None
+    _kind = None
 
     @property
     def color(self):
@@ -19,7 +20,8 @@ class Card:
 
     @property
     def kind(self):
-        return None
+        """Kind of a card if it is a location."""
+        return self._kind
 
 
 class ColorCard(Card):
