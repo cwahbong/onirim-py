@@ -24,7 +24,7 @@ class Content:
         return self._hand
 
 
-class Orinim:
+class Onirim:
 
     def __init__(self, cards):
         self._agent = None
