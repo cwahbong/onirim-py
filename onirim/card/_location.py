@@ -23,7 +23,7 @@ class _Location(ColorCard):
         return "{} location".format(self._kind.name)
 
     def drawn(self, agent, content):
-        content.add_hand(self)
+        content.hand.append(self)
 
     def play(self, agent, content):
         if content.explored[-1].kind != self.kind:
@@ -39,7 +39,7 @@ class _Location(ColorCard):
         pass
 
     def discard(self, agent, content):
-        # TODO remove from content.hand
+        content.hand.remove(self)
         content.deck.put_discard(self)
         self._on_discard(agent, content)
 

@@ -8,17 +8,17 @@ def _openable(door_card, card):
 
 def _may_open(door_card, content):
     """Check if the door may be opened by agent."""
-    return any(_openable(door_card, card) for card in content.hand())
+    return any(_openable(door_card, card) for card in content.hand)
 
 
 class _Door(ColorCard):
 
     def drawn(self, agent, content):
-        do_open = agent.ask("if open") if _may_open(self, content) else False
+        do_open = agent.open_door(content, self) if _may_open(self, content) else False
         if do_open:
-            content.discard(self)
+            content.opened.append(self)
         else:
-            content.limbo(self)
+            content.deck.put_limbo(self)
 
 
 def door(color):

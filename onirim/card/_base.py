@@ -29,6 +29,10 @@ class Card:
         """Kind of a card if it is a location."""
         return self._kind
 
+    def drawn(self, agent, content):
+        """Called whil this card is drawn."""
+        pass
+
     def __str__(self):
         return "{1} {0} card".format(self._class_name(), self._color_name())
 

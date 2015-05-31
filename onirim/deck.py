@@ -9,8 +9,10 @@ class Deck:
 
     def draw(self, n=1):
         """Draw n cards."""
-        if n > len(self._undrawn) or n < 0:
-            raise ValueError()
+        if n > len(self._undrawn):
+            raise ValueError("Card is not enough.")
+        if n < 0:
+            raise ValueError("Negative card number.")
         drawn, self._undrawn = self._undrawn[:n], self._undrawn[n:]
         return drawn
 
