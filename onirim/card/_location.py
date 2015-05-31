@@ -19,6 +19,9 @@ class _Location(ColorCard):
         if kind is not None:
             self._kind = kind
 
+    def _class_name(self):
+        return "{} location".format(self._kind.name)
+
     def drawn(self, agent, content):
         content.add_hand(self)
 

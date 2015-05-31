@@ -13,6 +13,12 @@ class Card:
     _color = None
     _kind = None
 
+    def _color_name(self):
+        return self._color.name if self._color else "nocolor"
+
+    def _class_name(self):
+        return self.__class__.__name__[1:].lower()
+
     @property
     def color(self):
         """Color of a card."""
@@ -22,6 +28,9 @@ class Card:
     def kind(self):
         """Kind of a card if it is a location."""
         return self._kind
+
+    def __str__(self):
+        return "{1} {0} card".format(self._class_name(), self._color_name())
 
 
 class ColorCard(Card):
