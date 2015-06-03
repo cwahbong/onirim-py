@@ -1,5 +1,7 @@
 import sys
 
+from onirim import card
+
 
 class Agent:
 
@@ -8,6 +10,9 @@ class Agent:
 
     def open_door(self, content, door_card):
         pass
+
+    def nightmare_action(self, content):
+        raise NotImplementedError
 
     def on_lose(self):
         pass
@@ -26,6 +31,9 @@ class File(Agent):
     def phase_1_action(self, content):
         print("decide a action (play/discard)")
         return False, 0
+
+    def nightmare_action(self, content):
+        return card.NightmareAction.by_key, {}
 
     def on_lose(self):
         print("lose")
