@@ -11,6 +11,17 @@ class LocationKind(util.AutoNumberEnum):
     key = ()
 
 
+def _can_obtain_door(content):
+    last_card = content.explored[-1]
+    same_count = 0
+    for card in reversed(content.explored):
+        if last_card.color == card.color:
+            same_count += 1
+        else:
+            break
+    return same_count % 3 == 0
+
+
 class _Location(ColorCard):
     """Location card without special effect."""
 
@@ -30,7 +41,9 @@ class _Location(ColorCard):
             content.explored.append(self)
             content.hand.discard(self)
             agent.notify("card played")
-            if False: # Three cards with same color
+            if _can_obtain_door(content):
+                # color = content.explored[-1].color
+                # TODO try pull a door with specific color from deck
                 pass
         else:
             raise exception.Onirim()
@@ -59,7 +72,7 @@ class _KeyLocation(_Location):
     _kind = LocationKind.key
 
     def _on_discard(self, agent, content):
-        # TODO draw 5 card, discard 1, and put 4 back.
+        # TODO draw at most 5 card, discard 1, and put 4 back.
         pass
 
 

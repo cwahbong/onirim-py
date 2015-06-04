@@ -14,6 +14,7 @@ def _may_open(door_card, content):
 class _Door(ColorCard):
 
     def drawn(self, agent, content):
+        # TODO discard that key card.
         do_open = agent.open_door(content, self) if _may_open(self, content) else False
         if do_open:
             content.opened.append(self)
