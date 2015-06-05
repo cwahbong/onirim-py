@@ -38,6 +38,7 @@ class Onirim:
 
     def _setup(self):
         """Prepare the initial hand."""
+        self._content.deck.shuffle()
         while len(self._content.hand) < 5:
             card = self._content.deck.draw()[0]
             if card.kind is None:
