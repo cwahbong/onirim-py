@@ -1,6 +1,6 @@
 import sys
 
-from onirim import card
+from onirim import action
 
 
 class Agent:
@@ -25,6 +25,23 @@ class Agent:
 
 
 class File(Agent):
+
+    _yesno_dict = {
+        "yes": True,
+        "no": False
+        }
+
+    _phase1_dict = {
+        "play": action.Phase1.play,
+        "discard": action.Phase1.discard
+        }
+
+    _nightmare_dict = {
+        "key": action.Nightmare.by_key,
+        "door": action.Nightmare.by_door,
+        "hand": action.Nightmare.by_hand,
+        "deck": action.Nightmare.by_deck
+        }
 
     def __init__(self, in_file, out_file):
         super().__init__()
@@ -63,37 +80,24 @@ class File(Agent):
     def phase_1_action(self, content):
         self._print_explored(content)
         self._print("decide an action (play/discard)")
-        action = self._input()
-        if action == "play":
-            phase1 = action.Phase1.play
-        elif action == "discard":
-            phase1 = action.Phase1.discard
-        else:
-            raise ValueError
+        action_input = self._input()
+        phase1 = self._phase1_dict[action_input]
         idx = self._select("select from hand", content.hand)
         return phase1, idx
 
     def open_door(self, content, door_card):
         self._print("open this door? (yes/no)")
-        yn = self._input()
-        if yn == "yes":
-            return True
-        elif yn == "no":
-            return False
-        raise ValueError
+        yesno_input = self._input()
+        return self._yesno_dict[yesno_input]
 
     def nightmare_action(self, content):
         self._print("choose a way to handle nightmare (key/door/hand/deck)")
-        way = self._input()
-        if way == "key":
-            return card.NightmareAction.by_key, {}
-        elif way == "door":
-            return card.NightmareAction.by_door, {}
-        elif way == "hand":
-            return card.NightmareAction.by_hand, {}
-        elif way == "deck":
-            return card.NightmareAction.by_deck, {}
-        raise ValueError
+        way_input = self._input()
+        way = self._nightmare_dict[way_input]
+        if way == action.Nightmare.by_door:
+            # TODO choose an opened door card
+            pass
+        return way, {}
 
     def obtain_door(self, content):
         self._print("door obtained")
