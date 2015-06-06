@@ -30,6 +30,15 @@ class Content:
         return self._hand
 
 
+def replenish_hand(content):
+    while len(content.hand) < 5:
+        card = content.deck.draw()[0]
+        if card.kind is None:
+            content.deck.put_limbo(card)
+        else:
+            content.hand.append(card)
+
+
 class Onirim:
 
     def __init__(self, cards):
@@ -39,12 +48,7 @@ class Onirim:
     def _setup(self):
         """Prepare the initial hand."""
         self._content.deck.shuffle()
-        while len(self._content.hand) < 5:
-            card = self._content.deck.draw()[0]
-            if card.kind is None:
-                self._content.deck.put_limbo(card)
-            else:
-                self._content.hand.append(card)
+        replenish_hand(self._content)
         self._content.deck.shuffle_with_limbo()
 
     def _phase_1(self):

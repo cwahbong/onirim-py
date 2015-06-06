@@ -1,21 +1,50 @@
 from onirim.card._base import Card
+from onirim.card._location import LocationKind
 from onirim import action
+from onirim import core
 
 
 def _by_key(content, **kwargs):
-    print("by key not handled")
+    """Nightmare card resolved by key."""
+    if len(kwargs) != 1:
+        raise ValueError
+    idx = kwargs["idx"]
+    card = content.hand[idx]
+    if card.kind != LocationKind.key:
+        raise ValueError("Not a key")
+    content.hand.remove(card)
+    content.deck.put_discard(card)
 
 
 def _by_door(content, **kwargs):
-    print("by door not handled")
+    """Nightmare card resolved by door."""
+    if len(kwargs) != 1:
+        raise ValueError
+    idx = kwargs["idx"]
+    card = content.opened[idx]
+    content.opened.remove(card)
+    content.deck.put_limbo(card)
 
 
 def _by_hand(content, **kwargs):
-    print("by hand not handled")
+    """Nightmare card resolved by hand."""
+    if kwargs:
+        raise ValueError
+    for card in content.hand:
+        content.deck.put_discard(card)
+    content.hand.clear()
+    core.replenish_hand(content)
 
 
 def _by_deck(content, **kwargs):
-    print("by deck not handled")
+    """Nightmare card resolved by deck."""
+    if kwargs:
+        raise ValueError
+    for card in content.deck.draw(5):
+        if card.kind is None:
+            content.deck.put_limbo(card)
+        else:
+            content.deck.put_discard(card)
 
 
 _resolve = {
