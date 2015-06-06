@@ -4,4 +4,4 @@ from onirim.card._location import (
     moon,
     key)
 from onirim.card._door import door
-from onirim.card._nightmare import nightmare, NightmareAction
+from onirim.card._nightmare import nightmare

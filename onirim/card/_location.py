@@ -37,11 +37,11 @@ class _Location(ColorCard):
         content.hand.append(self)
 
     def play(self, agent, content):
-        if content.explored[-1].kind != self.kind:
+        if not content.explored or content.explored[-1].kind != self.kind:
             content.explored.append(self)
-            content.hand.discard(self)
-            agent.notify("card played")
+            content.hand.remove(self)
             if _can_obtain_door(content):
+                agent.obtain_door(agent)
                 # color = content.explored[-1].color
                 # TODO try pull a door with specific color from deck
                 pass

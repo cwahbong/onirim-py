@@ -64,15 +64,14 @@ class File(Agent):
         self._print_explored(content)
         self._print("decide an action (play/discard)")
         action = self._input()
-        is_play = None
         if action == "play":
-            is_play = True
+            phase1 = action.Phase1.play
         elif action == "discard":
-            is_play = False
+            phase1 = action.Phase1.discard
         else:
             raise ValueError
         idx = self._select("select from hand", content.hand)
-        return is_play, idx
+        return phase1, idx
 
     def open_door(self, content, door_card):
         self._print("open this door? (yes/no)")
