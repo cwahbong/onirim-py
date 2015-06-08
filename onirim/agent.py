@@ -74,11 +74,25 @@ class File(Agent):
             return "[{} {}]".format(card.color.name[0], card.kind.name[0])
         return "[{}]".format(card.color.name[0])
 
+    def _print_hand(self, content):
+        """Print all cards in hand."""
+        self._print("--- Hand ---")
+        self._print(" ".join(self._short_card(card) for card in content.hand))
+
+    def _print_opened(self, content):
+        """Print all opened doors."""
+        self._print("--- Opened ---")
+        self._print(" ".join(self._short_card(card) for card in content.opened))
+
     def _print_explored(self, content):
+        """Print all explored locations."""
+        self._print("--- Explored ---")
         self._print(" ".join(self._short_card(card) for card in content.explored))
 
     def phase_1_action(self, content):
         self._print_explored(content)
+        self._print_opened(content)
+        self._print_hand(content)
         self._print("decide an action (play/discard)")
         action_input = self._input()
         phase1 = self._phase1_dict[action_input]

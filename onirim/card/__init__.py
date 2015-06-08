@@ -1,5 +1,6 @@
 from onirim.card._base import Color
 from onirim.card._location import (
+    LocationKind,
     sun,
     moon,
     key)

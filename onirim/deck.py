@@ -1,11 +1,23 @@
 import random
 
+from onirim.card import LocationKind
+
 class Deck:
 
     def __init__(self, cards):
         self._undrawn = list(cards)
         self._discarded = []
         self._limbo = []
+
+    def pull_door(self, color):
+        """Pull out a door card by color."""
+        for card in self._undrawn:
+            # XXX door does not has a kind now
+            #     the only Non-kind card that has a color is a door.
+            if card.kind == None and card.color == color:
+                self._undrawn.remove(card)
+                return card
+        return None
 
     def draw(self, n=1):
         """Draw n cards."""

@@ -42,9 +42,10 @@ class _Location(ColorCard):
             content.hand.remove(self)
             if _can_obtain_door(content):
                 agent.obtain_door(agent)
-                # color = content.explored[-1].color
-                # TODO try pull a door with specific color from deck
-                pass
+                color = content.explored[-1].color
+                card = content.deck.pull_door(color)
+                if card is not None:
+                    content.opened.append(card)
         else:
             raise exception.Onirim()
 

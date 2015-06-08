@@ -88,4 +88,5 @@ class Onirim:
             self._agent.on_lose()
             return False
         except exception.Onirim:
+            print("other errors")
             return None
