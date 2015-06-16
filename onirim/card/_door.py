@@ -2,22 +2,26 @@ from onirim.card._base import ColorCard
 from onirim.card._location import LocationKind
 
 
-def _openable(door_card, card):
+def _is_openable(door_card, card):
     """Check if the door can be opened by another card."""
     return card.kind == LocationKind.key and door_card.color == card.color
 
+
 def _may_open(door_card, content):
     """Check if the door may be opened by agent."""
-    return any(_openable(door_card, card) for card in content.hand)
+    return any(_is_openable(door_card, card) for card in content.hand)
 
 
 class _Door(ColorCard):
 
     def drawn(self, agent, content):
-        # TODO discard that key card.
         do_open = agent.open_door(content, self) if _may_open(self, content) else False
         if do_open:
             content.opened.append(self)
+            for card in content.hand:
+                if _openable(self, card):
+                    content.hand.remove(card)
+                    break
         else:
             content.deck.put_limbo(self)
 
