@@ -37,17 +37,16 @@ class _Location(ColorCard):
         content.hand.append(self)
 
     def play(self, agent, content):
-        if not content.explored or content.explored[-1].kind != self.kind:
-            content.explored.append(self)
-            content.hand.remove(self)
-            if _can_obtain_door(content):
-                agent.obtain_door(agent)
-                color = content.explored[-1].color
-                card = content.deck.pull_door(color)
-                if card is not None:
-                    content.opened.append(card)
-        else:
-            raise exception.Onirim()
+        if content.explored and content.explored[-1].kind == self.kind:
+            raise exception.ConsecutiveSameKind
+        content.explored.append(self)
+        content.hand.remove(self)
+        if _can_obtain_door(content):
+            agent.obtain_door(agent)
+            color = content.explored[-1].color
+            card = content.deck.pull_door(color)
+            if card is not None:
+                content.opened.append(card)
 
     def _on_discard(self, agent, content):
         pass
