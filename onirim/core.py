@@ -1,54 +1,20 @@
 """Onirim logic."""
 
-from onirim import deck
 from onirim import exception
 from onirim import agent
-
-
-class Content:
-
-    def __init__(self, cards):
-        self._deck = deck.Deck(cards)
-        self._hand = []
-        self._explored = []
-        self._opened = []
-
-    @property
-    def deck(self):
-        return self._deck
-
-    @property
-    def explored(self):
-        return self._explored
-
-    @property
-    def opened(self):
-        return self._opened
-
-    @property
-    def hand(self):
-        return self._hand
-
-
-def replenish_hand(content):
-    while len(content.hand) < 5:
-        card = content.deck.draw()[0]
-        if card.kind is None:
-            content.deck.put_limbo(card)
-        else:
-            content.hand.append(card)
+from onirim import component
 
 
 class Onirim:
 
     def __init__(self, cards):
         self._agent = agent.console()
-        self._content = Content(cards)
+        self._content = component.Content(cards)
 
     def _setup(self):
         """Prepare the initial hand."""
         self._content.deck.shuffle()
-        replenish_hand(self._content)
+        component.replenish_hand(self._content)
         self._content.deck.shuffle_with_limbo()
 
     def _phase_1(self):

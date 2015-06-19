@@ -1,7 +1,7 @@
 from onirim.card._base import Card
 from onirim.card._location import LocationKind
 from onirim import action
-from onirim import core
+from onirim import component
 
 
 def _by_key(content, **kwargs):
@@ -33,7 +33,7 @@ def _by_hand(content, **kwargs):
     for card in content.hand:
         content.deck.put_discard(card)
     content.hand.clear()
-    core.replenish_hand(content)
+    component.replenish_hand(content)
 
 
 def _by_deck(content, **kwargs):

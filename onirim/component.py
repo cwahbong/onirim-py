@@ -1,8 +1,8 @@
 import random
 
-from onirim.card import LocationKind
 
 class Deck:
+    """A deck."""
 
     def __init__(self, cards):
         self._undrawn = list(cards)
@@ -22,7 +22,7 @@ class Deck:
     def draw(self, n=1):
         """Draw n cards."""
         if n > len(self._undrawn):
-            raise ValueError("Card is not enough.")
+            raise NoCardException
         if n < 0:
             raise ValueError("Negative card number.")
         drawn, self._undrawn = self._undrawn[:n], self._undrawn[n:]
@@ -45,3 +45,37 @@ class Deck:
         self._undrawn += self._limbo
         self._limbo = []
         random.shuffle(self._undrawn)
+
+
+class Content:
+
+    def __init__(self, cards):
+        self._deck = Deck(cards)
+        self._hand = []
+        self._explored = []
+        self._opened = []
+
+    @property
+    def deck(self):
+        return self._deck
+
+    @property
+    def explored(self):
+        return self._explored
+
+    @property
+    def opened(self):
+        return self._opened
+
+    @property
+    def hand(self):
+        return self._hand
+
+
+def replenish_hand(content):
+    while len(content.hand) < 5:
+        card = content.deck.draw()[0]
+        if card.kind is None:
+            content.deck.put_limbo(card)
+        else:
+            content.hand.append(card)
