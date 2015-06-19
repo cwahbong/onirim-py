@@ -44,7 +44,7 @@ class _Location(ColorCard):
         if _can_obtain_door(content):
             agent.obtain_door(agent)
             color = content.explored[-1].color
-            card = content.deck.pull_door(color)
+            card = content.piles.pull_door(color)
             if card is not None:
                 content.opened.append(card)
 
@@ -53,7 +53,7 @@ class _Location(ColorCard):
 
     def discard(self, agent, content):
         content.hand.remove(self)
-        content.deck.put_discard(self)
+        content.piles.put_discard(self)
         self._on_discard(agent, content)
 
 

@@ -13,9 +13,9 @@ class Onirim:
 
     def _setup(self):
         """Prepare the initial hand."""
-        self._content.deck.shuffle()
+        self._content.piles.shuffle_undrawn()
         component.replenish_hand(self._content)
-        self._content.deck.shuffle_with_limbo()
+        self._content.piles.shuffle_limbo_to_undrawn()
 
     def _phase_1(self):
         """The first phase of a turn."""
@@ -30,14 +30,14 @@ class Onirim:
         """The second phase of a turn."""
         while len(self._content.hand) < 5:
             try:
-                card = self._content.deck.draw()[0]
+                card = self._content.piles.draw()[0]
                 card.drawn(self._agent, self._content)
             except ValueError:
                 raise exception.Lose
 
     def _phase_3(self):
         """The third phase of a turn."""
-        self._content.deck.shuffle_with_limbo()
+        self._content.piles.shuffle_limbo_to_undrawn()
 
     def run(self):
         """Run an Onirim and return the result."""

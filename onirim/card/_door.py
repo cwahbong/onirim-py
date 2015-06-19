@@ -23,7 +23,7 @@ class _Door(ColorCard):
                     content.hand.remove(card)
                     break
         else:
-            content.deck.put_limbo(self)
+            content.piles.put_limbo(self)
 
 
 def door(color):

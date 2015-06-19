@@ -13,7 +13,7 @@ def _by_key(content, **kwargs):
     if card.kind != LocationKind.key:
         raise ValueError("Not a key")
     content.hand.remove(card)
-    content.deck.put_discard(card)
+    content.piles.put_discard(card)
 
 
 def _by_door(content, **kwargs):
@@ -23,7 +23,7 @@ def _by_door(content, **kwargs):
     idx = kwargs["idx"]
     card = content.opened[idx]
     content.opened.remove(card)
-    content.deck.put_limbo(card)
+    content.piles.put_limbo(card)
 
 
 def _by_hand(content, **kwargs):
@@ -31,7 +31,7 @@ def _by_hand(content, **kwargs):
     if kwargs:
         raise ValueError
     for card in content.hand:
-        content.deck.put_discard(card)
+        content.piles.put_discard(card)
     content.hand.clear()
     component.replenish_hand(content)
 
@@ -40,11 +40,11 @@ def _by_deck(content, **kwargs):
     """Nightmare card resolved by deck."""
     if kwargs:
         raise ValueError
-    for card in content.deck.draw(5):
+    for card in content.piles.draw(5):
         if card.kind is None:
-            content.deck.put_limbo(card)
+            content.piles.put_limbo(card)
         else:
-            content.deck.put_discard(card)
+            content.piles.put_discard(card)
 
 
 _resolve = {
@@ -60,7 +60,7 @@ class _Nightmare(Card):
     def drawn(self, agent, content):
         action, additional = agent.nightmare_action(content)
         _resolve[action](content, **additional)
-        content.deck.put_discard(self)
+        content.piles.put_discard(self)
 
 
 def nightmare():
