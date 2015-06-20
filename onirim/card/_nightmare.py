@@ -1,3 +1,8 @@
+"""
+Inner module for nightmare card.
+"""
+
+
 from onirim.card._base import Card
 from onirim.card._location import LocationKind
 from onirim import action
@@ -47,7 +52,7 @@ def _by_deck(content, **kwargs):
             content.piles.put_discard(card)
 
 
-_resolve = {
+_RESOLVE = {
     action.Nightmare.by_key: _by_key,
     action.Nightmare.by_door: _by_door,
     action.Nightmare.by_hand: _by_hand,
@@ -56,10 +61,11 @@ _resolve = {
 
 
 class _Nightmare(Card):
+    """Nightmare card."""
 
     def drawn(self, agent, content):
-        action, additional = agent.nightmare_action(content)
-        _resolve[action](content, **additional)
+        nightmare_action, additional = agent.nightmare_action(content)
+        _RESOLVE[nightmare_action](content, **additional)
         content.piles.put_discard(self)
 
 

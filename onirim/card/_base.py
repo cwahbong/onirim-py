@@ -1,4 +1,9 @@
+"""
+Inner module for enumerations and base types.
+"""
+
 from onirim import util
+
 
 class Color(util.AutoNumberEnum):
     """

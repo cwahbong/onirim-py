@@ -1,3 +1,7 @@
+"""
+Inner module for door card.
+"""
+
 from onirim.card._base import ColorCard
 from onirim.card._location import LocationKind
 
@@ -13,13 +17,14 @@ def _may_open(door_card, content):
 
 
 class _Door(ColorCard):
+    """Door card."""
 
     def drawn(self, agent, content):
         do_open = agent.open_door(content, self) if _may_open(self, content) else False
         if do_open:
             content.opened.append(self)
             for card in content.hand:
-                if _openable(self, card):
+                if _is_openable(self, card):
                     content.hand.remove(card)
                     break
         else:
