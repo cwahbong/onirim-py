@@ -15,10 +15,33 @@ class Piles:
     Manages three piles: undrawn pile, discarded pile, and limbo pile.
     """
 
-    def __init__(self, undrawn_cards):
+    def __init__(self, undrawn_cards, discarded=None, limbo=None):
         self._undrawn = list(undrawn_cards)
-        self._discarded = []
-        self._limbo = []
+        self._discarded = [] if discarded is None else list(discarded)
+        self._limbo = [] if limbo is None else list(limbo)
+
+    def __eq__(self, other):
+        return all((
+            self._undrawn == other.undrawn,
+            self._discarded == other.discarded,
+            self._limbo == other.limbo,
+            ))
+
+    def __repr__(self):
+        return """Piles{{undrawn: {}, discarded: {}, limbo: {}}}""".format(
+            self._undrawn, self._discarded, self._limbo)
+
+    @property
+    def undrawn(self):
+        return self._undrawn
+
+    @property
+    def discarded(self):
+        return self._discarded
+
+    @property
+    def limbo(self):
+        return self._limbo
 
     def pull_door(self, color):
         """
@@ -91,11 +114,23 @@ class Piles:
 
 class Content:
 
-    def __init__(self, undrawn_cards):
-        self._piles = Piles(undrawn_cards)
-        self._hand = []
-        self._explored = []
-        self._opened = []
+    def __init__(self, undrawn_cards, discarded=None, limbo=None, hand=None, explored=None, opened=None):
+        self._piles = Piles(undrawn_cards, discarded, limbo)
+        self._hand = [] if hand is None else hand
+        self._explored = [] if explored is None else explored
+        self._opened = [] if opened is None else opened
+
+    def __eq__(self, other):
+        return all((
+            self._piles == other.piles,
+            self._hand == other.hand,
+            self._explored == other.explored,
+            self._opened == other.opened,
+            ))
+
+    def __repr__(self):
+        return """Content{{piles: {}, hand: {}, explored: {},opened: {}}}""".format(
+            self._piles, self._hand, self._explored, self._opened)
 
     @property
     def piles(self):

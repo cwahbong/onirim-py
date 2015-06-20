@@ -33,8 +33,14 @@ class Card:
         """Called whil this card is drawn."""
         pass
 
+    def __eq__(self, other):
+        return self._kind == other.kind and self._color == other.color
+
     def __str__(self):
         return "{1} {0} card".format(self._class_name(), self._color_name())
+
+    def __repr__(self):
+        return "Card{{color: {}, kind: {}}}".format(self._color, self._kind)
 
 
 class ColorCard(Card):
