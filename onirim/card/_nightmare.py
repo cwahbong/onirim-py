@@ -64,5 +64,10 @@ class _Nightmare(Card):
 
 
 def nightmare():
-    """Make a nightmare card."""
+    """
+    Make a nightmare card.
+
+    Returns:
+        Card: A nightmare card.
+    """
     return _Nightmare()

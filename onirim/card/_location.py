@@ -6,6 +6,14 @@ from onirim import util
 
 
 class LocationKind(util.AutoNumberEnum):
+    """
+    Enumerated kinds of locations.
+
+    Attributes:
+        sun
+        moon
+        key
+    """
     sun = ()
     moon = ()
     key = ()
@@ -58,12 +66,28 @@ class _Location(ColorCard):
 
 
 def sun(color):
-    """Make a sun location card."""
+    """
+    Make a sun location card with specific color.
+
+    Args:
+        color (Color): The specific color.
+
+    Returns:
+        Card: A sun location card.
+    """
     return _Location(color, LocationKind.sun)
 
 
 def moon(color):
-    """Make a moon location card."""
+    """
+    Make a moon location card with specific color.
+
+    Args:
+        color (Color): The specific color.
+
+    Returns:
+        Card: A moon location card.
+    """
     return _Location(color, LocationKind.moon)
 
 
@@ -77,5 +101,13 @@ class _KeyLocation(_Location):
 
 
 def key(color):
-    """Make a key location card."""
+    """
+    Make a key location card with specific color.
+
+    Args:
+        color (Color): The specific color.
+
+    Returns:
+        Card: A key location card.
+    """
     return _KeyLocation(color)

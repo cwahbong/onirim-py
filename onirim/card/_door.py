@@ -27,5 +27,13 @@ class _Door(ColorCard):
 
 
 def door(color):
-    """Make a door card."""
+    """
+    Make a door card with specific color.
+
+    Args:
+        color (Color): The specific color.
+
+    Returns:
+        Card: A door card.
+    """
     return _Door(color)
