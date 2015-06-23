@@ -20,6 +20,7 @@ class NightmareAgent(agent.Agent):
     def nightmare_action(self, content):
         return self._nightmare_action, self._additional
 
+
 BY_KEY_PARAMS = (
     action.Nightmare.by_key,
     {"idx": 1},
@@ -126,3 +127,42 @@ def test_action_handling(nightmare_action, additional, content, content_after):
     nightmare_card = card.nightmare()
     nightmare_card.drawn(nightmare_agent, content)
     assert content == content_after
+
+
+ACTION_HANDLING_KWARGS_CASES = [
+    (action.Nightmare.by_key, {}, ValueError),
+    (action.Nightmare.by_key, {"bad_key": 0}, KeyError),
+    (action.Nightmare.by_key, {"idx": 0}, None),
+    (action.Nightmare.by_door, {}, ValueError),
+    (action.Nightmare.by_door, {"bad_key": 0}, KeyError),
+    (action.Nightmare.by_door, {"idx": 0}, None),
+    (action.Nightmare.by_hand, {}, None),
+    (action.Nightmare.by_hand, {"non_empty": 0}, ValueError),
+    (action.Nightmare.by_deck, {}, None),
+    (action.Nightmare.by_deck, {"non_empty": 0}, ValueError),
+    ]
+
+
+@pytest.mark.parametrize(
+    "nightmare_action, additional, raises",
+    ACTION_HANDLING_KWARGS_CASES
+    )
+def test_action_handling_kwargs(nightmare_action, additional, raises):
+    """
+    Test kwargs format error.
+    """
+    nightmare_agent = NightmareAgent(nightmare_action, additional)
+    nightmare_card = card.nightmare()
+    content = component.Content(
+        undrawn_cards=[card.sun(card.Color.red)] * 5,
+        discarded=[],
+        limbo=[],
+        hand=[card.key(card.Color.red)] + [card.moon(card.Color.red)] * 4,
+        explored=[],
+        opened=[card.door(card.Color.red)]
+        )
+    if raises is None:
+        nightmare_card.drawn(nightmare_agent, content)
+    else:
+        with pytest.raises(raises):
+            nightmare_card.drawn(nightmare_agent, content)
