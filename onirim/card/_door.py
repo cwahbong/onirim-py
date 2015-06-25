@@ -26,7 +26,7 @@ class _Door(ColorCard):
             for card in content.hand:
                 if _is_openable(self, card):
                     content.hand.remove(card)
-                    break
+                    content.piles.put_discard(card)
         else:
             content.piles.put_limbo(self)
 
