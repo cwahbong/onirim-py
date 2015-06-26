@@ -133,6 +133,7 @@ ACTION_HANDLING_KWARGS_CASES = [
     (action.Nightmare.by_key, {}, ValueError),
     (action.Nightmare.by_key, {"bad_key": 0}, KeyError),
     (action.Nightmare.by_key, {"idx": 0}, None),
+    (action.Nightmare.by_key, {"idx": 1}, ValueError),
     (action.Nightmare.by_door, {}, ValueError),
     (action.Nightmare.by_door, {"bad_key": 0}, KeyError),
     (action.Nightmare.by_door, {"idx": 0}, None),
