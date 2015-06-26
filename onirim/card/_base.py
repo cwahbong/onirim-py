@@ -74,7 +74,7 @@ class Card:
             agent (onirim.agent.Agent): The agent of onirim.
             content (onirim.component.Content): The content of onirim.
         """
-        pass
+        raise NotImplementedError
 
     def __eq__(self, other):
         return self._kind == other.kind and self._color == other.color
@@ -90,6 +90,4 @@ class ColorCard(Card):
     """A card with color."""
 
     def __init__(self, color):
-        if not isinstance(color, Color):
-            raise ValueError()
-        self._color = color
+        self._color = Color(color)
