@@ -49,10 +49,14 @@ DRAWN_DO_OPEN = (
     True,
     component.Content(
         undrawn_cards=[],
-        hand=[card.key(card.Color.red)]),
+        hand=[
+            card.key(card.Color.blue),
+            card.key(card.Color.red),
+        ]),
     component.Content(
         undrawn_cards=[],
         discarded=[card.key(card.Color.red)],
+        hand=[card.key(card.Color.blue)],
         opened=[card.door(card.Color.red)]),
     )
 

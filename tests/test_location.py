@@ -15,12 +15,142 @@ class LocationPlayAgent(agent.Agent):
         pass
 
 
+LOCATION_PLAY_SIMPLE_CASE = (
+    card.sun(card.Color.red),
+    component.Content(undrawn_cards=[], hand=[card.sun(card.Color.red)]),
+    component.Content(undrawn_cards=[], explored=[card.sun(card.Color.red)]),
+    )
+
+
+LOCATION_PLAY_OBTAIN_DOOR = (
+    card.sun(card.Color.red),
+    component.Content(
+        undrawn_cards=[
+            card.door(card.Color.red),
+            card.door(card.Color.green),
+            ],
+        explored=[
+            card.sun(card.Color.red),
+            card.moon(card.Color.red),
+            ],
+        hand=[card.sun(card.Color.red)]),
+    component.Content(
+        undrawn_cards=[card.door(card.Color.green)],
+        explored=[
+            card.sun(card.Color.red),
+            card.moon(card.Color.red),
+            card.sun(card.Color.red),
+            ],
+        hand=[],
+        opened=[card.door(card.Color.red)]),
+    )
+
+
+LOCATION_PLAY_OBTAIN_DOOR_2 = (
+    card.sun(card.Color.red),
+    component.Content(
+        undrawn_cards=[
+            card.door(card.Color.green),
+            card.door(card.Color.red)
+            ],
+        explored=[
+            card.sun(card.Color.red),
+            card.moon(card.Color.red),
+            card.key(card.Color.red),
+            card.sun(card.Color.red),
+            card.moon(card.Color.red),
+            ],
+        hand=[card.sun(card.Color.red)]),
+    component.Content(
+        undrawn_cards=[card.door(card.Color.green)],
+        explored=[
+            card.sun(card.Color.red),
+            card.moon(card.Color.red),
+            card.key(card.Color.red),
+            card.sun(card.Color.red),
+            card.moon(card.Color.red),
+            card.sun(card.Color.red),
+            ],
+        hand=[],
+        opened=[card.door(card.Color.red)]),
+    )
+
+
+LOCATION_PLAY_OBTAIN_NO_DOOR = (
+    card.sun(card.Color.red),
+    component.Content(
+        undrawn_cards=[
+            card.door(card.Color.green),
+            ],
+        explored=[
+            card.sun(card.Color.red),
+            card.moon(card.Color.red),
+            ],
+        hand=[card.sun(card.Color.red)]),
+    component.Content(
+        undrawn_cards=[card.door(card.Color.green)],
+        explored=[
+            card.sun(card.Color.red),
+            card.moon(card.Color.red),
+            card.sun(card.Color.red),
+            ],
+        hand=[]),
+    )
+
+
+LOCATION_PLAY_NOT_OBTAIN_DOOR = (
+    card.sun(card.Color.red),
+    component.Content(
+        undrawn_cards=[],
+        explored=[
+            card.sun(card.Color.red),
+            card.moon(card.Color.red),
+            card.key(card.Color.red),
+            ],
+        hand=[card.sun(card.Color.red)]),
+    component.Content(
+        undrawn_cards=[],
+        explored=[
+            card.sun(card.Color.red),
+            card.moon(card.Color.red),
+            card.key(card.Color.red),
+            card.sun(card.Color.red),
+            ],
+        hand=[]),
+    )
+
+
+LOCATION_PLAY_NOT_OBTAIN_DOOR_2 = (
+    card.sun(card.Color.red),
+    component.Content(
+        undrawn_cards=[],
+        explored=[
+            card.sun(card.Color.red),
+            card.moon(card.Color.red),
+            card.sun(card.Color.green),
+            card.key(card.Color.red),
+            ],
+        hand=[card.sun(card.Color.red)]),
+    component.Content(
+        undrawn_cards=[],
+        explored=[
+            card.sun(card.Color.red),
+            card.moon(card.Color.red),
+            card.sun(card.Color.green),
+            card.key(card.Color.red),
+            card.sun(card.Color.red),
+            ],
+        hand=[]),
+    )
+
+
 LOCATION_PLAY_CASES = [
-    (
-        card.sun(card.Color.red),
-        component.Content(undrawn_cards=[], hand=[card.sun(card.Color.red)]),
-        component.Content(undrawn_cards=[], explored=[card.sun(card.Color.red)]),
-        ),
+    LOCATION_PLAY_SIMPLE_CASE,
+    LOCATION_PLAY_OBTAIN_DOOR,
+    LOCATION_PLAY_OBTAIN_DOOR_2,
+    LOCATION_PLAY_OBTAIN_NO_DOOR,
+    LOCATION_PLAY_NOT_OBTAIN_DOOR,
+    LOCATION_PLAY_NOT_OBTAIN_DOOR_2,
     ]
 
 
