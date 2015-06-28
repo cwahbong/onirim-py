@@ -96,8 +96,12 @@ class _KeyLocation(_Location):
     _kind = LocationKind.key
 
     def _on_discard(self, agent, content):
-        # TODO draw at most 5 card, discard 1, and put 4 back.
-        pass
+        drawn = content.piles.draw(5)
+        discarded_idx, back_idxes = agent.key_discard_react(content, drawn)
+        # TODO check returned value
+
+        content.piles.put_discard(drawn[discarded_idx])
+        content.piles.put_undrawn_iter(drawn[idx] for idx in back_idxes)
 
 
 def key(color):

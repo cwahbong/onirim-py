@@ -79,6 +79,9 @@ class Piles:
         drawn, self._undrawn = self._undrawn[:num], self._undrawn[num:]
         return drawn
 
+    def put_undrawn_iter(self, cards):
+        self._undrawn = list(cards) + self._undrawn
+
     def put_discard(self, card):
         """
         Put a card to discard pile.

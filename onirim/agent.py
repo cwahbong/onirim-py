@@ -8,6 +8,9 @@ class Agent:
     def phase_1_action(self, content):
         raise NotImplementedError
 
+    def key_discard_react(self, content, cards):
+        raise NotImplementedError
+
     def open_door(self, content, door_card):
         raise NotImplementedError
 
@@ -98,6 +101,10 @@ class File(Agent):
         phase1 = self._phase1_dict[action_input]
         idx = self._select("select from hand", content.hand)
         return phase1, idx
+
+    def key_discard_react(self, content, cards):
+        # TODO
+        raise NotImplementedError
 
     def open_door(self, content, door_card):
         self._print("open this door? (yes/no)")
