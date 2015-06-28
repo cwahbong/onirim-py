@@ -9,6 +9,14 @@ from onirim import card
 from onirim import component
 from onirim import agent
 
+
+def test_nightmare_str():
+    """
+    Test its str()
+    """
+    assert str(card.nightmare()) == "nocolor nightmare card"
+
+
 class NightmareAgent(agent.Agent):
     """
     An agent that always return a fixed nightmare action.
