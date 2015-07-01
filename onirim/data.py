@@ -4,6 +4,7 @@
 import itertools
 
 from onirim import card
+from onirim import component
 
 
 def _no_color_cards(card_factory, times):
@@ -35,3 +36,8 @@ def basic_cards():
         _all_color_cards(card.door, 2),
         _no_color_cards(card.nightmare, 10),
         )
+
+
+def starting_content():
+    # TODO support for different expansions
+    return component.Content(basic_cards())

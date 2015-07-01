@@ -3,7 +3,7 @@ import random
 from onirim import exception
 
 
-class NoUndrawnCardException(exception.Onirim):
+class CardNotEnoughException(exception.Onirim):
     """
     Indicates that there is no undrawn card.
     """
@@ -73,7 +73,7 @@ class Piles:
             ValueError: If the number of cards to draw is negative.
         """
         if num > len(self._undrawn):
-            raise NoUndrawnCardException
+            raise CardNotEnoughException
         if num < 0:
             raise ValueError("Negative card number.")
         drawn, self._undrawn = self._undrawn[:num], self._undrawn[num:]

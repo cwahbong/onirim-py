@@ -1,58 +1,58 @@
 """Onirim logic."""
 
-from onirim import exception
-from onirim import agent
+from onirim import action
 from onirim import component
+from onirim import exception
 
 
-class Onirim:
+def setup(agent, content):
+    """Prepare the initial hand."""
+    content.piles.shuffle_undrawn()
+    component.replenish_hand(content)
+    content.piles.shuffle_limbo_to_undrawn()
 
-    def __init__(self, cards):
-        self._agent = agent.console()
-        self._content = component.Content(cards)
 
-    def _setup(self):
-        """Prepare the initial hand."""
-        self._content.piles.shuffle_undrawn()
-        component.replenish_hand(self._content)
-        self._content.piles.shuffle_limbo_to_undrawn()
+def phase_1(agent, content):
+    """The first phase of a turn."""
+    is_play, idx = agent.phase_1_action(content)
+    card = content.hand[idx]
+    if is_play == action.Phase1.play:
+        card.play(agent, content)
+    elif is_play == action.Phase1.discard:
+        card.discard(agent, content)
+    else:
+        raise ValueError
 
-    def _phase_1(self):
-        """The first phase of a turn."""
-        is_play, idx = self._agent.phase_1_action(self._content)
-        card = self._content.hand[idx]
-        if is_play:
-            card.play(self._agent, self._content)
-        else:
-            card.discard(self._agent, self._content)
 
-    def _phase_2(self):
-        """The second phase of a turn."""
-        while len(self._content.hand) < 5:
-            try:
-                card = self._content.piles.draw()[0]
-                card.drawn(self._agent, self._content)
-            except ValueError:
-                raise exception.Lose
+def phase_2(agent, content):
+    """The second phase of a turn."""
+    try:
+        while len(content.hand) < 5:
+            card = content.piles.draw()[0]
+            card.drawn(agent, content)
+    except ValueError:
+        raise exception.Lose
 
-    def _phase_3(self):
-        """The third phase of a turn."""
-        self._content.piles.shuffle_limbo_to_undrawn()
 
-    def run(self):
-        """Run an Onirim and return the result."""
-        try:
-            self._setup()
-            while True:
-                self._phase_1()
-                self._phase_2()
-                self._phase_3()
-        except exception.Win:
-            self._agent.on_win()
-            return True
-        except exception.Lose:
-            self._agent.on_lose()
-            return False
-        except exception.Onirim:
-            print("other errors")
-            return None
+def phase_3(agent, content):
+    """The third phase of a turn."""
+    content.piles.shuffle_limbo_to_undrawn()
+
+
+def run(agent, content):
+    """Run an Onirim and return the result."""
+    try:
+        setup(agent, content)
+        while True:
+            phase_1(agent, content)
+            phase_2(agent, content)
+            phase_3(agent, content)
+    except exception.Win:
+        agent.on_win(content)
+        return True
+    except component.CardNotEnoughException:
+        agent.on_lose(content)
+        return False
+    except exception.Onirim as e:
+        print("other errors: {}", e.message)
+        return None

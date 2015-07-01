@@ -20,10 +20,10 @@ class Agent:
     def obtain_door(self, content):
         pass
 
-    def on_lose(self):
+    def on_lose(self, content):
         pass
 
-    def on_win(self):
+    def on_win(self, content):
         pass
 
 
