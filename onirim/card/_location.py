@@ -55,6 +55,8 @@ class _Location(ColorCard):
             card = content.piles.pull_door(color)
             if card is not None:
                 content.opened.append(card)
+                if len(content.opened) == 8:
+                    raise exception.Win
 
     def _on_discard(self, agent, content):
         pass

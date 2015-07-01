@@ -4,6 +4,7 @@ Inner module for door card.
 
 from onirim.card._base import ColorCard
 from onirim.card._location import LocationKind
+from onirim import exception
 
 
 def _is_openable(door_card, card):
@@ -23,6 +24,8 @@ class _Door(ColorCard):
         do_open = agent.open_door(content, self) if _may_open(self, content) else False
         if do_open:
             content.opened.append(self)
+            if len(content.opened) == 8:
+                raise exception.Win
             for card in content.hand:
                 if _is_openable(self, card):
                     content.hand.remove(card)
