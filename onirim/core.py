@@ -26,12 +26,9 @@ def phase_1(agent, content):
 
 def phase_2(agent, content):
     """The second phase of a turn."""
-    try:
-        while len(content.hand) < 5:
-            card = content.piles.draw()[0]
-            card.drawn(agent, content)
-    except ValueError:
-        raise exception.Lose
+    while len(content.hand) < 5:
+        card = content.piles.draw()[0]
+        card.drawn(agent, content)
 
 
 def phase_3(agent, content):
@@ -53,6 +50,6 @@ def run(agent, content):
     except component.CardNotEnoughException:
         agent.on_lose(content)
         return False
-    except exception.Onirim as e:
-        print("other errors: {}", e.message)
+    except exception.Onirim as exp:
+        print("other errors: {}", exp)
         return None
