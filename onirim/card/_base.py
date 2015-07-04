@@ -79,6 +79,11 @@ class Card:
     def __eq__(self, other):
         return self._kind == other.kind and self._color == other.color
 
+    def __hash__(self):
+        k = self.kind.value if self.kind else 0
+        c = self.color.value if self.color else 0
+        return k * 10 + c
+
     def __str__(self):
         return "{1} {0} card".format(self._class_name(), self._color_name())
 
