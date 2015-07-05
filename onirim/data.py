@@ -31,7 +31,7 @@ def basic_cards():
         _color_cards(card.sun, card.Color.blue, 8),
         _color_cards(card.sun, card.Color.green, 7),
         _color_cards(card.sun, card.Color.yellow, 6),
-        _all_color_cards(card.moon, 3),
+        _all_color_cards(card.moon, 4),
         _all_color_cards(card.key, 3),
         _all_color_cards(card.door, 2),
         _no_color_cards(card.nightmare, 10),
