@@ -14,14 +14,13 @@ def setup(agent, content):
 
 def phase_1(agent, content):
     """The first phase of a turn."""
-    is_play, idx = agent.phase_1_action(content)
+    phase_1_action, idx = agent.phase_1_action(content)
     card = content.hand[idx]
-    if is_play == action.Phase1.play:
-        card.play(agent, content)
-    elif is_play == action.Phase1.discard:
-        card.discard(agent, content)
-    else:
-        raise ValueError
+    card_on = {
+        action.Phase1.play: card.play,
+        action.Phase1.discard: card.discard,
+        }
+    card_on[phase_1_action](agent, content)
 
 
 def phase_2(agent, content):
