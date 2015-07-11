@@ -116,8 +116,11 @@ class File(Agent):
         way_input = self._input()
         way = self._nightmare_dict[way_input]
         if way == action.Nightmare.by_door:
-            # TODO choose an opened door card
-            pass
+            idx = self._select("select a door", content.opened)
+            return way, {"idx": idx}
+        elif way == action.Nightmare.by_key:
+            idx = self._select("select a key from hand", content.hand)
+            return way, {"idx": idx}
         return way, {}
 
     def obtain_door(self, content):
