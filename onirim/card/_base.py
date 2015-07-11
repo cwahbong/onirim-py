@@ -20,8 +20,6 @@ class Color(util.AutoNumberEnum):
     green = ()
     yellow = ()
 
-Color.red.__doc__ = "asdf"
-
 
 class Card:
     """
@@ -76,13 +74,25 @@ class Card:
         """
         raise NotImplementedError
 
+    def play(self, agent, content):
+        """
+        Called while a card is played.
+        """
+        raise NotImplementedError
+
+    def discard(self, agent, content):
+        """
+        Called while a card is discarded.
+        """
+        raise NotImplementedError
+
     def __eq__(self, other):
         return self._kind == other.kind and self._color == other.color
 
     def __hash__(self):
-        k = self.kind.value if self.kind else 0
-        c = self.color.value if self.color else 0
-        return k * 10 + c
+        key_int = self.kind.value if self.kind else 0
+        color_int = self.color.value if self.color else 0
+        return key_int * 10 + color_int
 
     def __str__(self):
         return "{1} {0} card".format(self._class_name(), self._color_name())
@@ -95,4 +105,6 @@ class ColorCard(Card):
     """A card with color."""
 
     def __init__(self, color):
-        self._color = Color(color)
+        # pylint is not smart enough to recognize enum class so we disable the
+        # function arguments check here.
+        self._color = Color(color) #pylint: disable=too-many-function-args

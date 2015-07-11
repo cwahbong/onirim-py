@@ -20,6 +20,9 @@ class LocationKind(util.AutoNumberEnum):
 
 
 def _can_obtain_door(content):
+    """
+    Check if the explored cards can obtain a door.
+    """
     last_card = content.explored[-1]
     same_count = 0
     for card in reversed(content.explored):
@@ -59,6 +62,10 @@ class _Location(ColorCard):
                     raise exception.Win
 
     def _on_discard(self, agent, content):
+        """
+        Do additional operations after discard a card from hand to discarded
+        pile.
+        """
         pass
 
     def discard(self, agent, content):
@@ -94,6 +101,9 @@ def moon(color):
 
 
 class _KeyLocation(_Location):
+    """
+    Key location card implementation.
+    """
 
     _kind = LocationKind.key
 
