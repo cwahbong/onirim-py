@@ -29,6 +29,7 @@ class Scorer:
     def __init__(self, content):
         self.undrawn_card = card_counter(content.piles.undrawn)
         self.undrawn_color = color_counter(content.piles.undrawn)
+        self.hand_card = card_counter(content.hand)
         self.hand_color = color_counter(content.hand)
         self.opened_color = color_counter(content.opened)
 
@@ -41,6 +42,11 @@ class Scorer:
         if card.color is None and card.kind is None:
             return self.nightmare_score
 
+    def nondiscard_score(self, card):
+        undrawn_count = self.undrawn_card[card]
+        hand_count = self.hand_card[card]
+        return [undrawn_count + hand_count, 0]
+
     def undrawn_score(self, card):
         color_undrawn_count = self.undrawn_color[card.color]
         undrawn_count = self.undrawn_card[card]
@@ -52,6 +58,7 @@ class AIAgent(onirim.agent.Agent):
     key_discarded = 0
 
     opened = 0
+    opened_by_key = 0
     opened_distribution = collections.defaultdict(int)
 
     def _choose_nightmare(self, cards):
@@ -76,7 +83,7 @@ class AIAgent(onirim.agent.Agent):
         if fullfilled_color_idx is not None:
             return fullfilled_color_idx
 
-        undrawn_scores = [scorer.undrawn_score(card) for card in cards]
+        undrawn_scores = [scorer.nondiscard_score(card) for card in cards]
         for idx, card in enumerate(cards):
             if card.kind is None:
                 undrawn_scores[idx][0] -= 500
@@ -105,12 +112,16 @@ class AIAgent(onirim.agent.Agent):
         last = content.explored[-1]
         same_color_kind_count = len(set(card.kind for card in content.hand if
             card.color == last.color))
-        if same_color_kind_count < need:
-            return None
+        scorer = Scorer(content)
+        candidates = []
         for idx, card in enumerate(content.hand):
-            # TODO sun first, then moon, then key
             if card.kind != last.kind and card.color == last.color:
-                return idx
+                candidates.append((idx, scorer.nondiscard_score(card)))
+                if card.kind == onirim.card.LocationKind.key:
+                    candidates[-1][1][0] -= 5
+        if not candidates:
+            return None
+        return max(candidates, key=operator.itemgetter(1))[0]
 
     def _play_combo_three_idx(self, content):
         combo = self._combo_count(content)
@@ -119,44 +130,50 @@ class AIAgent(onirim.agent.Agent):
             if combo_idx is not None:
                 return combo_idx
 
-    def _play_three_idx(self, content):
+    def _play_multi_idx(self, content, multi_num):
         scorer = Scorer(content)
         hand_color_count = scorer.hand_color
         max_hand_color_count = max(hand_color_count.values())
         card_count = card_counter(content.hand)
         door_count = scorer.opened_color
 
+        multi_colors = set()
         for color in onirim.card.Color:
-            if hand_color_count[color] >= 3 and door_count[color] == 2:
-                return None
+            if hand_color_count[color] >= multi_num and door_count[color] < 2:
+                multi_colors.add(color)
+        if not multi_colors:
+            return None
 
         # TODO calc the best bridge
 
         last = onirim.card.nightmare() if not content.explored else content.explored[-1]
-        three_candidates = []
+        multi_candidates = []
         for idx, card in enumerate(content.hand):
-            if hand_color_count[card.color] >= 3:
-                three_candidates.append((idx, card))
-        three_kind_count = len(set(card.kind for _, card in three_candidates))
+            if hand_color_count[card.color] >= multi_num:
+                multi_candidates.append((idx, card))
+        multi_kind_count = len(set(card.kind for _, card in multi_candidates))
 
-        if three_kind_count == 3:
-            # TODO 1 + 1 + 1
-            for idx, card in three_candidates:
-                if card.kind != last.kind:
+        if multi_kind_count == multi_num:
+            # (1 + 1 + 1) or (1 + 1), sun first if possible
+            for idx, card in multi_candidates:
+                if last.kind == onirim.card.LocationKind.sun:
+                    if card.kind != last.kind:
+                        return idx
+                elif card.kind == onirim.card.LocationKind.sun:
                     return idx
-        elif three_kind_count == 2:
+        elif multi_kind_count == multi_num - 1:
             # DOING 2 + ?
-            first_three_card = None
-            for idx, card in three_candidates:
-                if card.kind != last.kind and card_count[card] >= 2:
+            first_multi_card = None
+            for idx, card in multi_candidates:
+                if card.kind != last.kind and card_count[card] >= multi_num - 1:
                     return idx
                 else:
-                    first_three_card = card
+                    first_multi_card = card
             for idx, card in enumerate(content.hand):
-                if card.kind != last.kind and card.kind != first_three_card.kind:
+                if card.kind != last.kind and card.kind != first_multi_card.kind:
                     return idx
         else:
-            for idx, card in three_candidates:
+            for idx, card in multi_candidates:
                 if card.kind != last.kind:
                     return idx
         return None
@@ -176,11 +193,13 @@ class AIAgent(onirim.agent.Agent):
                 return idx
 
     def phase_1_action(self, content):
+        scorer = Scorer(content)
+
         play_idx = self._play_combo_three_idx(content)
         if play_idx is not None:
             return onirim.action.Phase1.play, play_idx
 
-        play_idx = self._play_three_idx(content)
+        play_idx = self._play_multi_idx(content, 3)
         if play_idx is not None:
             return onirim.action.Phase1.play, play_idx
 
@@ -188,7 +207,6 @@ class AIAgent(onirim.agent.Agent):
         if play_idx is not None:
             return onirim.action.Phase1.play, play_idx
 
-        scorer = Scorer(content)
         discarded_idx = self._choose_discard(scorer, content.hand)
         return onirim.action.Phase1.discard, discarded_idx
 
@@ -202,6 +220,7 @@ class AIAgent(onirim.agent.Agent):
         return discarded_idx, back
 
     def open_door(self, content, door_card):
+        AIAgent.opened_by_key += 1
         return True
 
     def nightmare_action(self, content):
@@ -239,7 +258,9 @@ def __main__():
         total += 1
         win += onirim.core.run(AIAgent(), onirim.data.starting_content())
     print("{}/{}".format(win, total))
-    print(AIAgent.opened, AIAgent.key_discarded)
+    print("Opened door: {}".format(AIAgent.opened))
+    print("Opened by keys: {}".format(AIAgent.opened_by_key))
+    print("Keys discarded: {}".format(AIAgent.key_discarded))
 
 if __name__ == "__main__":
     __main__()
