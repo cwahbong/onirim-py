@@ -21,17 +21,20 @@ class _Door(ColorCard):
     """Door card."""
 
     def drawn(self, agent, content):
-        do_open = agent.open_door(content, self) if _may_open(self, content) else False
-        if do_open:
-            content.opened.append(self)
-            if len(content.opened) == 8:
-                raise exception.Win
-            for card in content.hand:
-                if _is_openable(self, card):
-                    content.hand.remove(card)
-                    content.piles.put_discard(card)
-        else:
+        do_open = _may_open(self, content) and agent.open_door(content, self)
+        if not do_open:
             content.piles.put_limbo(self)
+            return
+        content.opened.append(self)
+        for card in content.hand:
+            if _is_openable(self, card):
+                content.hand.remove(card)
+                content.piles.put_discard(card)
+                break
+        else:
+            assert False
+        if len(content.opened) == 8:
+            raise exception.Win
 
 
 def door(color):

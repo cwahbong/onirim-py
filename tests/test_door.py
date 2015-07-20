@@ -5,7 +5,6 @@ Tests for a door card.
 import pytest
 
 from onirim import card
-from onirim import action
 from onirim import component
 from onirim import agent
 
@@ -50,6 +49,23 @@ DRAWN_DO_OPEN = (
     component.Content(
         undrawn_cards=[],
         hand=[
+            card.key(card.Color.red),
+            card.key(card.Color.red),
+            card.key(card.Color.red),
+        ]),
+    component.Content(
+        undrawn_cards=[],
+        discarded=[card.key(card.Color.red)],
+        hand=[card.key(card.Color.red), card.key(card.Color.red)],
+        opened=[card.door(card.Color.red)]),
+    )
+
+DRAWN_DO_OPEN_2 = (
+    card.Color.red,
+    True,
+    component.Content(
+        undrawn_cards=[],
+        hand=[
             card.key(card.Color.blue),
             card.key(card.Color.red),
         ]),
@@ -64,6 +80,7 @@ DRAWN_CASES = [
     DRAWN_CAN_NOT_OPEN,
     DRAWN_DO_NOT_OPEN,
     DRAWN_DO_OPEN,
+    DRAWN_DO_OPEN_2,
     ]
 
 
