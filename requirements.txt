@@ -3,3 +3,6 @@ pylint
 pytest
 pytest-cov
 python-coveralls
+
+# ai_demo.py
+etaprogress

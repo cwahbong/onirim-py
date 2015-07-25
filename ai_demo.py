@@ -8,6 +8,8 @@ import collections
 import operator
 import random
 
+from etaprogress.progress import ProgressBar
+
 
 def default_int_counter(iterator):
     return collections.defaultdict(int, collections.Counter(iterator))
@@ -252,9 +254,19 @@ class AIAgent(onirim.agent.Agent):
         self._update_result(content)
 
 
+def progressed(iterator):
+    progress_bar = ProgressBar(len(iterator))
+    print(progress_bar, end="\r")
+    for i in iterator:
+        yield i
+        progress_bar.numerator += 1
+        print(progress_bar, end="\r")
+    print()
+
+
 def __main__():
     win, total = 0, 0
-    for _ in range(1000):
+    for _ in progressed(range(1000)):
         total += 1
         win += onirim.core.run(AIAgent(), onirim.data.starting_content())
     print("{}/{}".format(win, total))
