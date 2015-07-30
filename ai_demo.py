@@ -50,13 +50,7 @@ class Scorer:
         return [undrawn_count + hand_count, 0]
 
 
-class AIAgent(onirim.agent.Agent):
-
-    key_discarded = 0
-
-    opened = 0
-    opened_by_key = 0
-    opened_distribution = collections.defaultdict(int)
+class AIHelper:
 
     def _choose_nightmare(self, cards):
         for idx, card in enumerate(cards):
@@ -204,46 +198,36 @@ class AIAgent(onirim.agent.Agent):
         discarded_idx = self._choose_discard(scorer, content.hand)
         return onirim.action.Phase1.discard, discarded_idx
 
-    def key_discard_react(self, content, cards):
-        AIAgent.key_discarded += 1
-        back = list(range(5))
-        scorer = Scorer(content)
-        discarded_idx = self._choose_discard(scorer, cards, nokey=True)
-        back.remove(discarded_idx)
-        random.shuffle(back)
-        return discarded_idx, back
 
-    def open_door(self, content, door_card):
-        AIAgent.opened_by_key += 1
-        return True
+def three_first_phase_1_action(content):
+    return AIHelper().phase_1_action(content)
 
-    def nightmare_action(self, content):
-        if not content.hand:
-            return onirim.action.Nightmare.by_hand, {}
 
-        scorer = Scorer(content)
+def nightmare_first_key_discard_react(content, cards):
+    scorer = Scorer(content)
 
-        # use key with most doors.
-        key_scores = [scorer.nightmare_key_score(card) for card in content.hand]
-        max_key_score = max(key_scores)
-        if max_key_score > 0:
-            for idx, score in enumerate(key_scores):
-                if score == max_key_score:
-                    return onirim.action.Nightmare.by_key, {"idx": idx}
+    back = list(range(5))
+    discarded_idx = AIHelper()._choose_discard(scorer, cards, nokey=True)
+    back.remove(discarded_idx)
+    random.shuffle(back)
+    return discarded_idx, back
 
+
+def key_first_nightmare_action(content):
+    if not content.hand:
         return onirim.action.Nightmare.by_hand, {}
 
-    @classmethod
-    def _update_result(cls, content):
-        cls.opened += len(content.opened)
-        cls.opened_distribution[len(content.opened)] += 1
+    scorer = Scorer(content)
 
-    def on_win(self, content):
-        assert len(content.opened) == 8
-        self._update_result(content)
+    # use key with most doors.
+    key_scores = [scorer.nightmare_key_score(card) for card in content.hand]
+    max_key_score = max(key_scores)
+    if max_key_score > 0:
+        for idx, score in enumerate(key_scores):
+            if score == max_key_score:
+                return onirim.action.Nightmare.by_key, {"idx": idx}
 
-    def on_lose(self, content):
-        self._update_result(content)
+    return onirim.action.Nightmare.by_hand, {}
 
 
 def progressed(iterator):
@@ -257,15 +241,19 @@ def progressed(iterator):
 
 
 def __main__():
+    agent = onirim.agent.AI(
+        phase_1_action=three_first_phase_1_action,
+        key_discard_react=nightmare_first_key_discard_react,
+        nightmare_action=key_first_nightmare_action)
     win, total = 0, 0
     for _ in progressed(range(1000)):
         total += 1
-        win += onirim.core.run(AIAgent(), onirim.data.starting_content())
+        win += onirim.core.run(agent, onirim.data.starting_content())
     print("{}/{}".format(win, total))
-    print("Opened door: {}".format(AIAgent.opened))
-    print("Opened by keys: {}".format(AIAgent.opened_by_key))
-    print("Keys discarded: {}".format(AIAgent.key_discarded))
+    print("Opened door: {}".format(agent.opened_door))
+    print("Opened by keys: {}".format(agent.opened_door_by_key))
+    print("Keys discarded: {}".format(agent.key_discarded))
+    print(str(agent.opened_distribution))
 
 if __name__ == "__main__":
     __main__()
-print(str(AIAgent.opened_distribution))
