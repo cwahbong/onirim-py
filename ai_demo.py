@@ -49,11 +49,6 @@ class Scorer:
         hand_count = self.hand_card[card]
         return [undrawn_count + hand_count, 0]
 
-    def undrawn_score(self, card):
-        color_undrawn_count = self.undrawn_color[card.color]
-        undrawn_count = self.undrawn_card[card]
-        return [undrawn_count, color_undrawn_count]
-
 
 class AIAgent(onirim.agent.Agent):
 
@@ -85,17 +80,17 @@ class AIAgent(onirim.agent.Agent):
         if fullfilled_color_idx is not None:
             return fullfilled_color_idx
 
-        undrawn_scores = [scorer.nondiscard_score(card) for card in cards]
+        nondiscard_scores = [scorer.nondiscard_score(card) for card in cards]
         for idx, card in enumerate(cards):
             if card.kind is None:
-                undrawn_scores[idx][0] -= 500
+                nondiscard_scores[idx][0] -= 500
             if scorer.opened_color[card.color] == 1:
-                undrawn_scores[idx][0] *= 2
+                nondiscard_scores[idx][0] *= 2
         if nokey:
             for idx, card in enumerate(cards):
                 if card.kind == onirim.card.LocationKind.key:
-                    undrawn_scores[idx][0] -= 10
-        return max(enumerate(undrawn_scores), key=operator.itemgetter(1))[0]
+                    nondiscard_scores[idx][0] -= 10
+        return max(enumerate(nondiscard_scores), key=operator.itemgetter(1))[0]
 
     def _combo_count(self, content):
         if not content.explored:
@@ -112,8 +107,6 @@ class AIAgent(onirim.agent.Agent):
     def _play_combo_idx(self, content, need):
         assert 0 < need < 3
         last = content.explored[-1]
-        same_color_kind_count = len(set(card.kind for card in content.hand if
-            card.color == last.color))
         scorer = Scorer(content)
         candidates = []
         for idx, card in enumerate(content.hand):
@@ -135,7 +128,6 @@ class AIAgent(onirim.agent.Agent):
     def _play_multi_idx(self, content, multi_num):
         scorer = Scorer(content)
         hand_color_count = scorer.hand_color
-        max_hand_color_count = max(hand_color_count.values())
         card_count = card_counter(content.hand)
         door_count = scorer.opened_color
 
