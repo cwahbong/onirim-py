@@ -83,11 +83,6 @@ class AI(Agent):
     def nightmare_action(self, *args, **kwargs):
         return self._nightmare_action(*args, **kwargs)
 
-
-    def obtain_door(self, *args, **kwargs):
-        self.opened_door += 1
-        return super().obtain_door(*args, **kwargs)
-
     def _update_result(self, content):
         self.opened_door += len(content.opened)
         self.opened_distribution[len(content.opened)] += 1
