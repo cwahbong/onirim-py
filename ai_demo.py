@@ -203,6 +203,10 @@ def three_first_phase_1_action(content):
     return AIHelper().phase_1_action(content)
 
 
+def sun_moon_only_phase_1_action(content):
+    pass
+
+
 def nightmare_first_key_discard_react(content, cards):
     scorer = Scorer(content)
 
@@ -230,6 +234,57 @@ def key_first_nightmare_action(content):
     return onirim.action.Nightmare.by_hand, {}
 
 
+def threat_based_nightmare_action(content):
+    def nondiscard_sunmoon_min(scorer, color):
+        sun = onirim.card.sun(color)
+        moon = onirim.card.moon(color)
+        return min(scorer.nondiscard_score(sun)[0], scorer.nondiscard_score(moon)[0])
+
+    def key_safe(scorer, card):
+        if card.kind != onirim.card.LocationKind.key:
+            return False
+        key_score = scorer.nondiscard_score(card)[0]
+        sunmoon_score = nondiscard_sunmoon_min(scorer, card.color) / 1.5
+        score = key_score + sunmoon_score
+        return score >= 2 - scorer.opened_color[card.color]
+
+    def door_safe(scorer, card):
+        assert card.kind == None
+        key = onirim.card.key(card.color)
+        key_score = scorer.nondiscard_score(key)[0]
+        sunmoon_score = nondiscard_sunmoon_min(scorer, card.color) / 1.5
+        nonopened_becomes = 2 - scorer.opened_color[card.color] + 1
+        return key_score + sunmoon_score > nonopened_becomes
+
+    def door_easy(scorer, door):
+        color = door.color
+        key = onirim.card.key(color)
+        key_score = scorer.nondiscard_score(key)[0]
+        sunmoon_score = nondiscard_sunmoon_min(scorer, color) / 1.5
+        nonopened = scorer.opened_color[color] + 1
+        return (key_score + sunmoon_score) / nonopened
+
+    if all(card.kind != onirim.card.LocationKind.key for card in content.hand):
+        return onirim.action.Nightmare.by_hand, {}
+
+    scorer = Scorer(content)
+
+    for idx, card in enumerate(content.hand):
+        if key_safe(scorer, card):
+            return onirim.action.Nightmare.by_key, {"idx": idx}
+
+    for idx, door in enumerate(content.opened):
+        if door_safe(scorer, door):
+            return onirim.action.Nightmare.by_door, {"idx": idx}
+
+    if content.opened:
+        door_easies = [door_easy(scorer, door) for door in content.opened]
+        easiest_idx = max(enumerate(door_easies), key=operator.itemgetter(1))[0]
+        return onirim.action.Nightmare.by_door, {"idx": easiest_idx}
+
+    return key_first_nightmare_action(content)
+
+
 def progressed(iterator):
     progress_bar = ProgressBar(len(iterator))
     print(progress_bar, end="\r")
@@ -244,7 +299,7 @@ def __main__():
     agent = onirim.agent.AI(
         phase_1_action=three_first_phase_1_action,
         key_discard_react=nightmare_first_key_discard_react,
-        nightmare_action=key_first_nightmare_action)
+        nightmare_action=threat_based_nightmare_action)
     win, total = 0, 0
     for _ in progressed(range(1000)):
         total += 1
