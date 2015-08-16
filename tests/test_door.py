@@ -6,10 +6,11 @@ import pytest
 
 from onirim import card
 from onirim import component
+from onirim import core
 from onirim import agent
 
 
-class DoorAgent(agent.Agent):
+class DoorActor(agent.Actor):
     """
     """
     def __init__(self, do_open):
@@ -89,5 +90,5 @@ DRAWN_CASES = [
     DRAWN_CASES)
 def test_drawn(color, do_open, content, content_after):
     door_card = card.door(color)
-    door_card.drawn(DoorAgent(do_open), content)
+    door_card.drawn(core.Core(DoorActor(do_open), agent.Observer(), content))
     assert content == content_after

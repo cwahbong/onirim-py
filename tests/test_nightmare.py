@@ -6,6 +6,7 @@ import pytest
 
 from onirim import action
 from onirim import card
+from onirim import core
 from onirim import component
 from onirim import agent
 
@@ -17,7 +18,7 @@ def test_nightmare_str():
     assert str(card.nightmare()) == "nocolor nightmare card"
 
 
-class NightmareAgent(agent.Agent):
+class NightmareActor(agent.Actor):
     """
     An agent that always return a fixed nightmare action.
     """
@@ -131,9 +132,9 @@ def test_action_handling(nightmare_action, additional, content, content_after):
     """
     Handling nightmare.
     """
-    nightmare_agent = NightmareAgent(nightmare_action, additional)
+    nightmare_actor = NightmareActor(nightmare_action, additional)
     nightmare_card = card.nightmare()
-    nightmare_card.drawn(nightmare_agent, content)
+    nightmare_card.drawn(core.Core(nightmare_actor, agent.Observer(), content))
     assert content == content_after
 
 
@@ -160,7 +161,7 @@ def test_action_handling_kwargs(nightmare_action, additional, raises):
     """
     Test kwargs format error.
     """
-    nightmare_agent = NightmareAgent(nightmare_action, additional)
+    nightmare_actor = NightmareActor(nightmare_action, additional)
     nightmare_card = card.nightmare()
     content = component.Content(
         undrawn_cards=[card.sun(card.Color.red)] * 5,
@@ -170,8 +171,9 @@ def test_action_handling_kwargs(nightmare_action, additional, raises):
         explored=[],
         opened=[card.door(card.Color.red)]
         )
+    nightmare_core = core.Core(nightmare_actor, agent.Observer(), content)
     if raises is None:
-        nightmare_card.drawn(nightmare_agent, content)
+        nightmare_card.drawn(nightmare_core)
     else:
         with pytest.raises(raises):
-            nightmare_card.drawn(nightmare_agent, content)
+            nightmare_card.drawn(nightmare_core)

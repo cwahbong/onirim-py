@@ -26,7 +26,8 @@ def test_setup():
         ]
 
     content = component.Content(starting)
-    core.setup(None, content)
+    flow = core.Flow(core.Core(None, None, content))
+    flow.setup()
 
     assert len(content.hand) == 5
     count_content = collections.Counter(content.hand + content.piles.undrawn)
@@ -34,19 +35,20 @@ def test_setup():
     assert count_content == count_starting
 
 
-class DiscardAgent(agent.Agent):
+class DiscardActor(agent.Actor):
 
     def phase_1_action(self, content):
         return action.Phase1.discard, 0
 
 
 def test_phase_1_discard_action():
-    discard_agent = DiscardAgent()
+    discard_actor = DiscardActor()
     content = component.Content(
         undrawn_cards=[],
         hand=[card.sun(card.Color.red), card.moon(card.Color.blue)]
         )
-    core.phase_1(discard_agent, content)
+    flow = core.Flow(core.Core(discard_actor, agent.Observer(), content))
+    flow.phase_1()
     assert content == component.Content(
         undrawn_cards=[],
         hand=[card.moon(card.Color.blue)],
@@ -55,7 +57,7 @@ def test_phase_1_discard_action():
 
 
 
-class WinAgent(agent.Agent):
+class WinActor(agent.Actor):
 
     def phase_1_action(self, content):
         return action.Phase1.play, 0
@@ -65,24 +67,26 @@ class WinAgent(agent.Agent):
 
 
 def test_phase_1_pull_door_win():
-    win_agent = WinAgent()
+    win_actor = WinActor()
     content = component.Content(
         undrawn_cards=[card.door(card.Color.red)],
         opened=[card.door(card.Color.red)] * 7,
         explored=[card.sun(card.Color.red), card.moon(card.Color.red)],
         hand=[card.sun(card.Color.red)]
         )
+    flow = core.Flow(core.Core(win_actor, agent.Observer(), content))
     with pytest.raises(exception.Win):
-        core.phase_1(win_agent, content)
+        flow.phase_1()
         print(content)
 
 
 def test_phase_2_draw_door_win():
-    win_agent = WinAgent()
+    win_actor = WinActor()
     content = component.Content(
         undrawn_cards=[card.door(card.Color.red)],
         opened=[card.door(card.Color.red)] * 7,
         hand=[card.key(card.Color.red)]
         )
+    flow = core.Flow(core.Core(win_actor, agent.Observer(), content))
     with pytest.raises(exception.Win):
-        core.phase_2(win_agent, content)
+        flow.phase_2()

@@ -13,19 +13,24 @@ def _is_openable(door_card, card):
 
 
 def _may_open(door_card, content):
-    """Check if the door may be opened by agent."""
+    """Check if the door may be opened by actor."""
     return any(_is_openable(door_card, card) for card in content.hand)
 
 
 class _Door(ColorCard):
     """Door card."""
 
-    def drawn(self, agent, content):
-        do_open = _may_open(self, content) and agent.open_door(content, self)
+    def drawn(self, core):
+        actor = core.actor
+        observer = core.observer
+        content = core.content
+
+        do_open = _may_open(self, content) and actor.open_door(content, self)
         if not do_open:
             content.piles.put_limbo(self)
             return
         content.opened.append(self)
+        observer.on_door_obtained_by_key(core.content)
         for card in content.hand:
             if _is_openable(self, card):
                 content.hand.remove(card)

@@ -5,50 +5,75 @@ from onirim import component
 from onirim import exception
 
 
-def setup(agent, content):
-    """Prepare the initial hand."""
-    content.piles.shuffle_undrawn()
-    component.replenish_hand(content)
-    content.piles.shuffle_limbo_to_undrawn()
+class Core:
+    def __init__(self, actor, observer, content):
+        self._actor = actor
+        self._observer = observer
+        self._content = content
+
+    @property
+    def actor(self):
+        return self._actor
+
+    @property
+    def observer(self):
+        return self._observer
+
+    @property
+    def content(self):
+        return self._content
 
 
-def phase_1(agent, content):
-    """The first phase of a turn."""
-    phase_1_action, idx = agent.phase_1_action(content)
-    card = content.hand[idx]
-    card_on = {
-        action.Phase1.play: card.play,
-        action.Phase1.discard: card.discard,
-        }
-    card_on[phase_1_action](agent, content)
+class Flow:
+
+    def __init__(self, core):
+        self._core = core
+
+    def setup(self):
+        """Prepare the initial hand."""
+        self._core.content.piles.shuffle_undrawn()
+        component.replenish_hand(self._core.content)
+        self._core.content.piles.shuffle_limbo_to_undrawn()
+
+    def phase_1(self):
+        """The first phase of a turn."""
+        phase_1_action, idx = self._core.actor.phase_1_action(self._core.content)
+        card = self._core.content.hand[idx]
+        card_on = {
+            action.Phase1.play: card.play,
+            action.Phase1.discard: card.discard,
+            }
+        self._core.observer.on_phase_1_action(self._core.content, phase_1_action, idx)
+        card_on[phase_1_action](self._core)
+
+    def phase_2(self):
+        """The second phase of a turn."""
+        while len(self._core.content.hand) < 5:
+            card = self._core.content.piles.draw()[0]
+            card.drawn(self._core)
+
+    def phase_3(self):
+        """The third phase of a turn."""
+        self._core.content.piles.shuffle_limbo_to_undrawn()
+
+    def whole(self):
+        """Run an Onirim and return the result."""
+        try:
+            self.setup()
+            while True:
+                self.phase_1()
+                self.phase_2()
+                self.phase_3()
+        except exception.Win:
+            self._core.observer.on_win(self._core.content)
+            return True
+        except component.CardNotEnoughException:
+            self._core.observer.on_lose(self._core.content)
+            return False
+        except exception.Onirim as exp:
+            print("other errors: {}", exp)
+            return None
 
 
-def phase_2(agent, content):
-    """The second phase of a turn."""
-    while len(content.hand) < 5:
-        card = content.piles.draw()[0]
-        card.drawn(agent, content)
-
-
-def phase_3(agent, content):
-    """The third phase of a turn."""
-    content.piles.shuffle_limbo_to_undrawn()
-
-
-def run(agent, content):
-    """Run an Onirim and return the result."""
-    try:
-        setup(agent, content)
-        while True:
-            phase_1(agent, content)
-            phase_2(agent, content)
-            phase_3(agent, content)
-    except exception.Win:
-        agent.on_win(content)
-        return True
-    except component.CardNotEnoughException:
-        agent.on_lose(content)
-        return False
-    except exception.Onirim as exp:
-        print("other errors: {}", exp)
-        return None
+def run(actor, observer, content):
+    return Flow(Core(actor, observer, content)).whole()

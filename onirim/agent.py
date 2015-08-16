@@ -2,10 +2,10 @@ import collections
 import sys
 
 from onirim import action
+from onirim import card
 
 
-class Agent:
-
+class Actor:
     def phase_1_action(self, content):
         raise NotImplementedError
 
@@ -18,74 +18,39 @@ class Agent:
     def nightmare_action(self, content):
         raise NotImplementedError
 
-    def obtain_door(self, content):
+
+class Observer:
+    def on_door_obtained_by_explore(self, content):
+        pass
+
+    def on_door_obtained_by_key(self, content):
+        pass
+
+    def on_phase_1_action(self, content, phase_1_action, hand_idx):
         pass
 
     def on_lose(self, content):
         pass
 
-    def on_win(self, content):
-        pass
 
-
-def default_phase_1_action(_content):
-    return action.Phase1.discard, 0
-
-
-def default_key_discard_react(_content, _cards):
-    return 0, [1, 2, 3, 4]
-
-
-def default_open_door(_content, _door_card):
-    return True
-
-
-def default_nightmare_action(_content):
-    return action.Nightmare.by_hand, {}
-
-
-class AI(Agent):
-
-    def __init__(self, phase_1_action=None, key_discard_react=None,
-                 open_door=None, nightmare_action=None):
-        if phase_1_action is None:
-            phase_1_action = default_phase_1_action
-        if key_discard_react is None:
-            key_discard_react = default_key_discard_react
-        if open_door is None:
-            open_door = default_open_door
-        if nightmare_action is None:
-            nightmare_action = default_nightmare_action
-
-        self._phase_1_action = phase_1_action
-        self._key_discard_react = key_discard_react
-        self._open_door = open_door
-        self._nightmare_action = nightmare_action
-
+class ProfiledObserver(Observer):
+    def __init__(self):
         self.key_discarded = 0
         self.opened_door = 0
         self.opened_door_by_key = 0
         self.opened_distribution = collections.defaultdict(int)
 
-    def phase_1_action(self, *args, **kwargs):
-        return self._phase_1_action(*args, **kwargs)
-
-    def key_discard_react(self, *args, **kwargs):
-        self.key_discarded += 1
-        return self._key_discard_react(*args, **kwargs)
-
-    def open_door(self, *args, **kwargs):
-        do_open = self._open_door(*args, **kwargs)
-        if do_open:
-            self.opened_door_by_key += 1
-        return do_open
-
-    def nightmare_action(self, *args, **kwargs):
-        return self._nightmare_action(*args, **kwargs)
+    def on_phase_1_action(self, content, phase_1_action, hand_idx):
+        if (phase_1_action == action.Phase1.discard and
+                content.hand[hand_idx].kind == card.LocationKind.key):
+            self.key_discarded += 1
 
     def _update_result(self, content):
         self.opened_door += len(content.opened)
         self.opened_distribution[len(content.opened)] += 1
+
+    def on_door_obtained_by_key(self, content):
+        self.opened_door_by_key += 1
 
     def on_win(self, content):
         assert len(content.opened) == 8
@@ -95,7 +60,7 @@ class AI(Agent):
         self._update_result(content)
 
 
-class File(Agent):
+class File(Actor, Observer):
 
     _yesno_dict = {
         "yes": True,
@@ -191,8 +156,11 @@ class File(Agent):
             return way, {"idx": idx}
         return way, {}
 
-    def obtain_door(self, content):
-        self._print("door obtained")
+    def on_door_obtained_by_explore(self, content):
+        self._print("door obtained by explore")
+
+    def on_door_obtained_by_key(self, content):
+        self._print("door obtained by key")
 
     def on_lose(self):
         self._print("lose")

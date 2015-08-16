@@ -5,14 +5,10 @@ Tests for a location card.
 import pytest
 
 from onirim import card
+from onirim import core
 from onirim import component
 from onirim import agent
 from onirim import exception
-
-class LocationPlayAgent(agent.Agent):
-
-    def obtain_door(self, content):
-        pass
 
 
 LOCATION_PLAY_SIMPLE_CASE = (
@@ -158,8 +154,7 @@ LOCATION_PLAY_CASES = [
     "location_card, content, content_after",
     LOCATION_PLAY_CASES)
 def test_location_play(location_card, content, content_after):
-    location_agent = LocationPlayAgent()
-    location_card.play(location_agent, content)
+    location_card.play(core.Core(None, agent.Observer(), content))
     assert content == content_after
 
 
@@ -175,19 +170,19 @@ LOCATION_PLAY_CONSECUTIVE = [
     "first_card, second_card, raises",
     LOCATION_PLAY_CONSECUTIVE)
 def test_location_play_consecutive(first_card, second_card, raises):
-    location_agent = LocationPlayAgent()
     content = component.Content(
         undrawn_cards=[],
         hand=[first_card, second_card])
-    first_card.play(location_agent, content)
+    play_core = core.Core(None, agent.Observer(), content)
+    first_card.play(play_core)
     if raises:
         with pytest.raises(exception.ConsecutiveSameKind):
-            second_card.play(location_agent, content)
+            second_card.play(play_core)
     else:
-        second_card.play(location_agent, content)
+        second_card.play(play_core)
 
 
-class LocationDiscardAgent(agent.Agent):
+class LocationDiscardActor(agent.Actor):
 
     def key_discard_react(self, content, cards):
         return 1, [0, 2, 3, 4]
@@ -241,6 +236,6 @@ LOCATION_DISCARD_CASES = [
     "location_card, content, content_after",
     LOCATION_DISCARD_CASES)
 def test_location_discard(location_card, content, content_after):
-    location_agent = LocationDiscardAgent()
-    location_card.discard(location_agent, content)
+    discard_core = core.Core(LocationDiscardActor(), agent.Observer(), content)
+    location_card.discard(discard_core)
     assert content == content_after

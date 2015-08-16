@@ -295,20 +295,33 @@ def progressed(iterator):
     print()
 
 
+class Actor:
+
+    def phase_1_action(self, *args, **kwargs):
+        return three_first_phase_1_action(*args, **kwargs)
+
+    def key_discard_react(self, *args, **kwargs):
+        return nightmare_first_key_discard_react(*args, **kwargs)
+
+    def open_door(self, *args, **kwargs):
+        return True
+
+    def nightmare_action(self, *args, **kwargs):
+        return threat_based_nightmare_action(*args, **kwargs)
+
+
 def __main__():
-    agent = onirim.agent.AI(
-        phase_1_action=three_first_phase_1_action,
-        key_discard_react=nightmare_first_key_discard_react,
-        nightmare_action=threat_based_nightmare_action)
+    profiler = onirim.agent.ProfiledObserver()
+    actor = Actor()
     win, total = 0, 0
     for _ in progressed(range(1000)):
         total += 1
-        win += onirim.core.run(agent, onirim.data.starting_content())
+        win += onirim.core.run(actor, profiler, onirim.data.starting_content())
     print("{}/{}".format(win, total))
-    print("Opened door: {}".format(agent.opened_door))
-    print("Opened by keys: {}".format(agent.opened_door_by_key))
-    print("Keys discarded: {}".format(agent.key_discarded))
-    print(str(agent.opened_distribution))
+    print("Opened door: {}".format(profiler.opened_door))
+    print("Opened by keys: {}".format(profiler.opened_door_by_key))
+    print("Keys discarded: {}".format(profiler.key_discarded))
+    print(str(profiler.opened_distribution))
 
 if __name__ == "__main__":
     __main__()

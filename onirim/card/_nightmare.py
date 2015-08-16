@@ -63,8 +63,10 @@ _RESOLVE = {
 class _Nightmare(Card):
     """Nightmare card."""
 
-    def drawn(self, agent, content):
-        nightmare_action, additional = agent.nightmare_action(content)
+    def drawn(self, core):
+        actor = core.actor
+        content = core.content
+        nightmare_action, additional = actor.nightmare_action(content)
         _RESOLVE[nightmare_action](content, **additional)
         content.piles.put_discard(self)
 

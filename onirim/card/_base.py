@@ -64,7 +64,7 @@ class Card:
         """
         return self._kind
 
-    def drawn(self, agent, content):
+    def drawn(self, core):
         """
         Called while this card is drawn.
 
@@ -74,13 +74,13 @@ class Card:
         """
         raise NotImplementedError
 
-    def play(self, agent, content):
+    def play(self, core):
         """
         Called while a card is played.
         """
         raise NotImplementedError
 
-    def discard(self, agent, content):
+    def discard(self, core):
         """
         Called while a card is discarded.
         """

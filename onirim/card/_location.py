@@ -44,16 +44,18 @@ class _Location(ColorCard):
     def _class_name(self):
         return "{} location".format(self._kind.name)
 
-    def drawn(self, agent, content):
-        content.hand.append(self)
+    def drawn(self, core):
+        core.content.hand.append(self)
 
-    def play(self, agent, content):
+    def play(self, core):
+        observer = core.observer
+        content = core.content
         if content.explored and content.explored[-1].kind == self.kind:
             raise exception.ConsecutiveSameKind
         content.explored.append(self)
         content.hand.remove(self)
         if _can_obtain_door(content):
-            agent.obtain_door(agent)
+            observer.on_door_obtained_by_explore(core.content)
             color = content.explored[-1].color
             card = content.piles.pull_door(color)
             if card is not None:
@@ -61,17 +63,18 @@ class _Location(ColorCard):
                 if len(content.opened) == 8:
                     raise exception.Win
 
-    def _on_discard(self, agent, content):
+    def _on_discard(self, core):
         """
         Do additional operations after discard a card from hand to discarded
         pile.
         """
         pass
 
-    def discard(self, agent, content):
+    def discard(self, core):
+        content = core.content
         content.hand.remove(self)
         content.piles.put_discard(self)
-        self._on_discard(agent, content)
+        self._on_discard(core)
 
 
 def sun(color):
@@ -107,9 +110,12 @@ class _KeyLocation(_Location):
 
     _kind = LocationKind.key
 
-    def _on_discard(self, agent, content):
+    def _on_discard(self, core):
+        actor = core.actor
+        content = core.content
+
         drawn = content.piles.draw(5)
-        discarded_idx, back_idxes = agent.key_discard_react(content, drawn)
+        discarded_idx, back_idxes = actor.key_discard_react(core.content, drawn)
         # TODO check returned value
 
         content.piles.put_discard(drawn[discarded_idx])
