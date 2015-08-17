@@ -3,12 +3,11 @@ import onirim.action
 import onirim.card
 import onirim.core
 import onirim.data
+import onirim.tool
 
 import collections
 import operator
 import random
-
-from etaprogress.progress import ProgressBar
 
 
 def default_int_counter(iterator):
@@ -285,16 +284,6 @@ def threat_based_nightmare_action(content):
     return key_first_nightmare_action(content)
 
 
-def progressed(iterator):
-    progress_bar = ProgressBar(len(iterator))
-    print(progress_bar, end="\r")
-    for i in iterator:
-        yield i
-        progress_bar.numerator += 1
-        print(progress_bar, end="\r")
-    print()
-
-
 class Actor:
 
     def phase_1_action(self, *args, **kwargs):
@@ -311,17 +300,16 @@ class Actor:
 
 
 def __main__():
-    profiler = onirim.agent.ProfiledObserver()
     actor = Actor()
-    win, total = 0, 0
-    for _ in progressed(range(1000)):
-        total += 1
-        win += onirim.core.run(actor, profiler, onirim.data.starting_content())
-    print("{}/{}".format(win, total))
-    print("Opened door: {}".format(profiler.opened_door))
-    print("Opened by keys: {}".format(profiler.opened_door_by_key))
-    print("Keys discarded: {}".format(profiler.key_discarded))
-    print(str(profiler.opened_distribution))
+    observer = onirim.agent.ProfiledObserver()
+    content_fac = onirim.data.starting_content
+    onirim.tool.progressed_run(1000, actor, observer, content_fac)
+
+    print("{}/{}".format(observer.win, observer.total))
+    print("Opened door: {}".format(observer.opened_door))
+    print("Opened by keys: {}".format(observer.opened_door_by_key))
+    print("Keys discarded: {}".format(observer.key_discarded))
+    print(str(observer.opened_distribution))
 
 if __name__ == "__main__":
     __main__()

@@ -35,6 +35,9 @@ class Observer:
 
 class ProfiledObserver(Observer):
     def __init__(self):
+        self.win = 0
+        self.lose = 0
+        self.total = 0
         self.key_discarded = 0
         self.opened_door = 0
         self.opened_door_by_key = 0
@@ -54,9 +57,13 @@ class ProfiledObserver(Observer):
 
     def on_win(self, content):
         assert len(content.opened) == 8
+        self.win += 1
+        self.total += 1
         self._update_result(content)
 
     def on_lose(self, content):
+        self.lose += 1
+        self.total += 1
         self._update_result(content)
 
 
