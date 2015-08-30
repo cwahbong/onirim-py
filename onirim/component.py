@@ -151,6 +151,15 @@ class Content:
     def hand(self):
         return self._hand
 
+    def copy(self):
+        return Content(
+            undrawn_cards=list(self._piles.undrawn),
+            discarded=list(self._piles.discarded),
+            limbo=list(self._piles.limbo),
+            hand=list(self._hand),
+            explored=list(self._explored),
+            opened=list(self._opened))
+
 
 def replenish_hand(content):
     while len(content.hand) < 5:

@@ -1,34 +1,79 @@
 import onirim.agent
 import onirim.action
 import onirim.card
-import onirim.core
 import onirim.data
 import onirim.tool
 
+import itertools
 import operator
-
-from etaprogress.progress import ProgressBar
-from onirim.action import Phase1
 
 
 def max_index(iterator):
     return max(enumerate(iterator), key=operator.itemgetter(1))[0]
 
 
+def _can_obtain_door(content):
+    """
+    Check if the explored cards can obtain a door.
+    """
+    last_card = content.explored[-1]
+    same_count = 0
+    for card in reversed(content.explored):
+        if last_card.color == card.color:
+            same_count += 1
+        else:
+            break
+    return same_count % 3 == 0
+
+
+def _is_openable(door_card, card):
+    """Check if the door can be opened by another card."""
+    return card.kind == onirim.card.LocationKind.key and door_card.color == card.color
+
+
+def back_idxes(idx):
+    return list(range(idx)) + list(range(idx + 1, 5))
+
+
 class Evaluator(onirim.agent.Actor):
 
-    phase1_play_actions = [(Phase1.play, idx) for idx in range(5)]
-    phase1_discard_actions = [(Phase1.discard, idx) for idx in range(5)]
-    phase1_available_actions = phase1_play_actions + phase1_discard_actions
+    phase1_available_actions = list(itertools.chain(
+        ((onirim.action.Phase1.play, idx) for idx in range(5)),
+        ((onirim.action.Phase1.discard, idx) for idx in range(5))))
+
+    available_key_discard_react = [(idx, back_idxes(idx)) for idx in range(5)]
 
     available_open_door = [False, True]
+
+    available_nightmare_actions = list(itertools.chain(
+        ((onirim.action.Nightmare.by_key, {"idx": idx}) for idx in range(5)),
+        ((onirim.action.Nightmare.by_door, {"idx": idx}) for idx in range(8)),
+        [
+            (onirim.action.Nightmare.by_hand, {}),
+            (onirim.action.Nightmare.by_deck, {})]))
 
     def __init__(self, evaluation_func):
         self._evaluate = evaluation_func
 
     def _after_phase_1_action(self, content, action):
-        # TODO
-        pass
+        new_content = content.copy()
+        phase_1_action, idx = action
+        card = new_content.hand[idx]
+        if phase_1_action == onirim.action.Phase1.play:
+            if new_content.explored and card.kind == new_content.explored[-1].kind:
+                # consecutive same kind
+                return None
+            new_content.explored.append(card)
+            new_content.hand.remove(card)
+            if _can_obtain_door(new_content):
+                color = new_content.explored[-1].color
+                door_card = new_content.piles.pull_door(color)
+                if door_card is not None:
+                    new_content.opened.append(door_card)
+        elif phase_1_action == onirim.action.Phase1.discard:
+            new_content.hand.remove(card)
+            new_content.piles.put_discard(card)
+        return new_content
 
     def _phase_1_action_scores(self, content):
         for action in self.phase1_available_actions:
@@ -39,11 +84,15 @@ class Evaluator(onirim.agent.Actor):
         return self.phase1_available_actions[idx]
 
     def _after_key_discard_react(self, content, cards, react):
-        # TODO
-        pass
+        new_content = content.copy()
+        discarded_idx, back_idxes = react
+        print(back_idxes)
+        new_content.piles.put_discard(cards[discarded_idx])
+        new_content.piles.put_undrawn_iter(cards[idx] for idx in back_idxes)
+        return new_content
 
     def _key_discard_react_scores(self, content, cards):
-        for react in self.available_key_discard_reacts:
+        for react in self.available_key_discard_react:
             yield self._evaluate(self._after_key_discard_react(content, cards, react))
 
     def key_discard_react(self, content, cards):
@@ -51,8 +100,17 @@ class Evaluator(onirim.agent.Actor):
         return self.available_key_discard_react[idx]
 
     def _after_open_door(self, content, door_card, do_open):
-        # TODO
-        pass
+        new_content = content.copy()
+        if not do_open:
+            new_content.piles.put_limbo(self)
+            return new_content
+        new_content.opened.append(door_card)
+        for card in new_content.hand:
+            if _is_openable(door_card, card):
+                new_content.hand.remove(card)
+                new_content.piles.put_discard(card)
+                break
+        return new_content
 
     def _open_door_scores(self, content, door_card):
         for do_open in self.available_open_door:
@@ -62,9 +120,61 @@ class Evaluator(onirim.agent.Actor):
         idx = max_index(self._open_door_scores(content, door_card))
         return self.available_open_door[idx]
 
+    def _nightmare_action_by_key(self, content, **additional):
+        try:
+            idx = additional["idx"]
+            card = content.hand[idx]
+            if card.kind != LocationKind.key:
+                return False
+            content.hand.remove(card)
+            content.piles.put_discard(card)
+        except:
+            return False
+        return True
+
+    def _nightmare_action_by_door(self, content, **additional):
+        try:
+            idx = additional["idx"]
+            card = content.opened[idx]
+            content.opened.remove(card)
+            content.piles.put_limbo(card)
+        except:
+            return False
+        return True
+
+    def _nightmare_action_by_hand(self, content, **additional):
+        for card in content.hand:
+            content.piles.put_discard(card)
+        content.hand.clear()
+        # do not replenish hand or it may trigger the second nightmare
+        return True
+
+    def _nightmare_action_by_deck(self, content, **additional):
+        try:
+            for card in content.piles.draw(5):
+                if card.kind is None:
+                    content.piles.put_limbo(card)
+                else:
+                    content.piles.put_discard(card)
+            # TODO card not enough is okay??
+        except:
+            return False
+        return True
+
+    _resolve = {
+        onirim.action.Nightmare.by_key: _nightmare_action_by_key,
+        onirim.action.Nightmare.by_door: _nightmare_action_by_door,
+        onirim.action.Nightmare.by_hand: _nightmare_action_by_hand,
+        onirim.action.Nightmare.by_deck: _nightmare_action_by_deck,
+    }
+
     def _after_nightmare_action(self, content, action):
-        # TODO
-        pass
+        new_content = content.copy()
+        nightmare_action, additional = action
+        if not Evaluator._resolve[nightmare_action](self, new_content, **additional):
+            return None
+        new_content.piles.put_discard(onirim.card.nightmare())
+        return new_content
 
     def _nightmare_action_scores(self, content):
         for action in self.available_nightmare_actions:
@@ -76,6 +186,10 @@ class Evaluator(onirim.agent.Actor):
 
 
 def evaluate(content):
+    if content is None:
+        return -100000000
+    nondiscard = content.piles.undrawn + content.piles.limbo + content.hand + content.opened
+    # TODO implement evaluation function here
     return 0
 
 
