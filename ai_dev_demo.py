@@ -86,7 +86,6 @@ class Evaluator(onirim.agent.Actor):
     def _after_key_discard_react(self, content, cards, react):
         new_content = content.copy()
         discarded_idx, back_idxes = react
-        print(back_idxes)
         new_content.piles.put_discard(cards[discarded_idx])
         new_content.piles.put_undrawn_iter(cards[idx] for idx in back_idxes)
         return new_content
@@ -102,7 +101,7 @@ class Evaluator(onirim.agent.Actor):
     def _after_open_door(self, content, door_card, do_open):
         new_content = content.copy()
         if not do_open:
-            new_content.piles.put_limbo(self)
+            new_content.piles.put_limbo(door_card)
             return new_content
         new_content.opened.append(door_card)
         for card in new_content.hand:
