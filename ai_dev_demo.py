@@ -4,6 +4,7 @@ import onirim.card
 import onirim.data
 import onirim.tool
 
+import collections
 import itertools
 import logging
 import operator
@@ -187,12 +188,91 @@ class Evaluator(onirim.agent.Actor):
         return self.available_nightmare_actions[idx]
 
 
-def evaluate(content):
+def default_int_counter(iterator):
+    return collections.defaultdict(int, collections.Counter(iterator))
+
+
+def card_counter(cards):
+    return default_int_counter(card for card in cards)
+
+
+def kind_counter(cards):
+    return default_int_counter(card.kind for card in cards)
+
+
+def color_counter(cards):
+    return default_int_counter(card.color for card in cards)
+
+
+def combo_count(content):
+    """
+    Check if the explored cards can obtain a door.
+    """
+    if not content.explored:
+        return 0
+    last_card = content.explored[-1]
+    same_count = 0
+    for card in reversed(content.explored):
+        if last_card.color == card.color:
+            same_count += 1
+        else:
+            break
+    return same_count % 3
+
+
+def do_evaluate(content):
+    # Invalid game state
     if content is None:
         return -100000000
-    nondiscard = content.piles.undrawn + content.piles.limbo + content.hand + content.opened
-    # TODO implement evaluation function here
-    return 0
+
+    # Prevent discarding a door
+    for card in content.piles.discarded:
+        if card.kind is None and card.color is not None:
+            return -100000000
+
+    score = 0
+    nondiscard = content.piles.undrawn + content.piles.limbo + content.hand
+    for card in nondiscard:
+        if card.kind is None: # nightmare or non-opened door
+            score -= 10000
+        if card.kind == onirim.card.LocationKind.key:
+            score += 100
+
+    # for three combo
+    opened_color_counter = color_counter(content.opened)
+    hand_color_counter = color_counter(content.hand)
+    if content.explored:
+        last_explored = content.explored[-1]
+        combo_color = last_explored.color
+        combo_weight = (2 - opened_color_counter[combo_color])
+
+        hand_combo = combo_count(content)
+        score += hand_combo * 50 * combo_weight
+
+        combo_kind_set = set(c for c in content.hand if c.color == combo_color
+                             and c.kind != onirim.card.LocationKind.key)
+        cont_combo = hand_color_counter[combo_color]
+        if len(combo_kind_set) >= 2:
+            cont_combo = min(3 - hand_combo, cont_combo)
+        elif last_explored.kind in combo_kind_set:
+            cont_combo = 0
+        score += cont_combo * 10 * combo_weight
+
+    # for card discarding
+    nondiscard_card_counter = card_counter(nondiscard)
+    for color in onirim.card.Color:
+        sun_count = nondiscard_card_counter[onirim.card.sun(color)]
+        moon_count = nondiscard_card_counter[onirim.card.moon(color)]
+        weight = (2 - opened_color_counter[color])
+        score += min(sun_count, moon_count) * 20 * weight
+    return score
+
+
+def evaluate(content):
+    try:
+        return do_evaluate(content)
+    except Exception as e:
+        print("ERR", e)
 
 
 def __main__():
