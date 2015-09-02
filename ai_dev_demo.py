@@ -123,11 +123,11 @@ class Evaluator(onirim.agent.Actor):
         try:
             idx = additional["idx"]
             card = content.hand[idx]
-            if card.kind != LocationKind.key:
+            if card.kind != onirim.card.LocationKind.key:
                 return False
             content.hand.remove(card)
             content.piles.put_discard(card)
-        except:
+        except IndexError:
             return False
         return True
 
@@ -137,7 +137,7 @@ class Evaluator(onirim.agent.Actor):
             card = content.opened[idx]
             content.opened.remove(card)
             content.piles.put_limbo(card)
-        except:
+        except IndexError:
             return False
         return True
 
@@ -149,16 +149,18 @@ class Evaluator(onirim.agent.Actor):
         return True
 
     def _nightmare_action_by_deck(self, content, **additional):
-        try:
-            for card in content.piles.draw(5):
-                if card.kind is None:
-                    content.piles.put_limbo(card)
-                else:
-                    content.piles.put_discard(card)
-            # TODO card not enough is okay??
-        except:
-            return False
-        return True
+        return False
+        # XXX know the future
+        #try:
+        #    for card in content.piles.draw(5):
+        #        if card.kind is None:
+        #            content.piles.put_limbo(card)
+        #        else:
+        #            content.piles.put_discard(card)
+        #    # TODO card not enough is okay??
+        #except:
+        #    return False
+        #return True
 
     _resolve = {
         onirim.action.Nightmare.by_key: _nightmare_action_by_key,
