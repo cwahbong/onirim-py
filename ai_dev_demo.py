@@ -227,44 +227,50 @@ def do_evaluate(content):
 
     # Prevent discarding a door
     for card in content.piles.discarded:
-        if card.kind is None and card.color is not None:
+        if onirim.card.is_door(card):
             return -100000000
 
-    score = 0
-    nondiscard = content.piles.undrawn + content.piles.limbo + content.hand
-    for card in nondiscard:
-        if card.kind is None: # nightmare or non-opened door
-            score -= 10000
-        if card.kind == onirim.card.LocationKind.key:
-            score += 100
-
-    # for three combo
-    opened_color_counter = color_counter(content.opened)
-    hand_color_counter = color_counter(content.hand)
     if content.explored:
         last_explored = content.explored[-1]
-        combo_color = last_explored.color
-        combo_weight = (2 - opened_color_counter[combo_color])
+    else:
+        last_explored = onirim.card.nightmare()
+    last_color = last_explored.color
+    opened_color_counter = color_counter(content.opened)
+    nondiscard = content.piles.undrawn + content.piles.limbo + content.hand
+    nondiscard_card_counter = card_counter(nondiscard)
 
-        hand_combo = combo_count(content)
-        score += hand_combo * 50 * combo_weight
+    score = 0
+    for card in nondiscard:
+        if not onirim.card.is_location(card):
+            score -= 100000
+        if card.kind == onirim.card.LocationKind.key:
+            score += 10000 * (1 + 0.3 * (2 - opened_color_counter[card.color]) / nondiscard_card_counter[card])
 
-        combo_kind_set = set(c for c in content.hand if c.color == combo_color
-                             and c.kind != onirim.card.LocationKind.key)
-        cont_combo = hand_color_counter[combo_color]
-        if len(combo_kind_set) >= 2:
-            cont_combo = min(3 - hand_combo, cont_combo)
-        elif last_explored.kind in combo_kind_set:
-            cont_combo = 0
-        score += cont_combo * 10 * combo_weight
+    # for three combo
+    hand_combo = combo_count(content)
+    combo_weight = (2 - opened_color_counter[last_color])
+    score += hand_combo * 5000 * combo_weight
+
+    color_cards = set(c for c in content.hand if c.color == last_color
+                      and c.kind != onirim.card.LocationKind.key)
+    for card_perm in itertools.permutations(color_cards):
+        prev_card = last_explored
+        cont_count = 0
+        for card in card_perm:
+            if card.kind != prev_card.kind:
+                cont_count += 1
+            else:
+                break
+            prev_card = card
+    cont_combo = min(3 - hand_combo, cont_count)
+    score += cont_combo * 4000 * combo_weight
 
     # for card discarding
-    nondiscard_card_counter = card_counter(nondiscard)
     for color in onirim.card.Color:
         sun_count = nondiscard_card_counter[onirim.card.sun(color)]
         moon_count = nondiscard_card_counter[onirim.card.moon(color)]
         weight = (2 - opened_color_counter[color])
-        score += min(sun_count, moon_count) * 20 * weight
+        score += min(sun_count, moon_count) * 500 * weight
     return score
 
 
