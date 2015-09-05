@@ -13,13 +13,20 @@ from onirim.card._location import (
     key)
 from onirim.card._door import door
 from onirim.card._nightmare import nightmare
+from onirim.card._utils import (
+    is_location,
+    is_door,
+    is_nightmare)
 
 __all__ = [
+    "Card",
     "Color",
     "LocationKind",
-    "Card",
     "sun",
     "moon",
     "key",
+    "is_location",
     "door",
-    "nightmare"]
+    "is_door",
+    "nightmare",
+    "is_nightmare"]

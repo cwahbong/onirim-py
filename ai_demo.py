@@ -40,7 +40,7 @@ class Scorer:
         return 1 + self.opened_color[key_card.color]
 
     def discard_score(self, card):
-        if card.color is None and card.kind is None:
+        if onirim.card.is_nightmare(card):
             return self.nightmare_score
 
     def nondiscard_score(self, card):
@@ -53,7 +53,7 @@ class AIHelper:
 
     def _choose_nightmare(self, cards):
         for idx, card in enumerate(cards):
-            if card.kind is None and card.color is None:
+            if onirim.card.is_nightmare(card):
                 return idx
         return None
 
@@ -75,7 +75,7 @@ class AIHelper:
 
         nondiscard_scores = [scorer.nondiscard_score(card) for card in cards]
         for idx, card in enumerate(cards):
-            if card.kind is None:
+            if onirim.card.is_door(card):
                 nondiscard_scores[idx][0] -= 500
             if scorer.opened_color[card.color] == 1:
                 nondiscard_scores[idx][0] *= 2
@@ -248,7 +248,7 @@ def threat_based_nightmare_action(content):
         return score >= 2 - scorer.opened_color[card.color]
 
     def door_safe(scorer, card):
-        assert card.kind == None
+        assert onirim.card.is_door(card)
         key = onirim.card.key(card.color)
         key_score = scorer.nondiscard_score(key)[0]
         sunmoon_score = nondiscard_sunmoon_min(scorer, card.color) / 1.5

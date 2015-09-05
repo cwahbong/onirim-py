@@ -1,5 +1,6 @@
 import random
 
+from onirim.card._utils import is_location
 from onirim import exception
 
 
@@ -164,7 +165,7 @@ class Content:
 def replenish_hand(content):
     while len(content.hand) < 5:
         card = content.piles.draw()[0]
-        if card.kind is None:
-            content.piles.put_limbo(card)
-        else:
+        if is_location(card):
             content.hand.append(card)
+        else:
+            content.piles.put_limbo(card)
