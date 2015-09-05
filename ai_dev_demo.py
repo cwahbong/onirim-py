@@ -243,12 +243,19 @@ def do_evaluate(content):
     for card in nondiscard:
         if not onirim.card.is_location(card):
             score -= 100000
-        if card.kind == onirim.card.LocationKind.key:
-            score += 10000 * (1 + 0.3 * (2 - opened_color_counter[card.color]) / nondiscard_card_counter[card])
+
+    # for keys
+    for color in onirim.card.Color:
+        opened_count = opened_color_counter[color]
+        key_count = nondiscard_card_counter[onirim.card.key(color)]
+        if key_count:
+            key_score = (1 - 0.99 ** key_count) / (1 - 0.99) * 10000
+            key_score *= 1 + 0.1 * (2 - opened_count)
+            score += key_score
 
     # for three combo
     hand_combo = combo_count(content)
-    combo_weight = (2 - opened_color_counter[last_color])
+    combo_weight = 2 - opened_color_counter[last_color]
     score += hand_combo * 5000 * combo_weight
 
     color_cards = set(c for c in content.hand if c.color == last_color
@@ -269,8 +276,9 @@ def do_evaluate(content):
     for color in onirim.card.Color:
         sun_count = nondiscard_card_counter[onirim.card.sun(color)]
         moon_count = nondiscard_card_counter[onirim.card.moon(color)]
-        weight = (2 - opened_color_counter[color])
-        score += min(sun_count, moon_count) * 500 * weight
+        count = min(sun_count, moon_count)
+        weight = 2 - opened_color_counter[color]
+        score += (1 - 0.9 ** count) / (1 - 0.9) * 500 * weight
     return score
 
 
