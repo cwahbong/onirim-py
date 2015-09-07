@@ -25,8 +25,8 @@ __all__ = [
     "sun",
     "moon",
     "key",
-    "is_location",
     "door",
-    "is_door",
     "nightmare",
+    "is_location",
+    "is_door",
     "is_nightmare"]

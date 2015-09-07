@@ -25,7 +25,12 @@ def _all_color_cards(card_factory, times):
 
 
 def basic_cards():
-    """Get all cards used in basic onirim."""
+    """
+    Make an iterator that returns all cards in basic onirim.
+
+    Returns:
+        iterator: All cards in basic onirim.
+    """
     return itertools.chain(
         _color_cards(card.sun, card.Color.red, 9),
         _color_cards(card.sun, card.Color.blue, 8),
@@ -39,5 +44,12 @@ def basic_cards():
 
 
 def starting_content():
+    """
+    Make a content for a new game.
+
+    Returns:
+        content (onirim.component.Content): A content with all basic cards in
+        undrawn deck.
+    """
     # TODO support for different expansions
     return component.Content(basic_cards())

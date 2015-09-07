@@ -80,8 +80,14 @@ class Piles:
         drawn, self._undrawn = self._undrawn[:num], self._undrawn[num:]
         return drawn
 
-    def put_undrawn_iter(self, cards):
-        self._undrawn = list(cards) + self._undrawn
+    def put_undrawn_iter(self, cards_iterator):
+        """
+        Put all cards in `cards_iterator` to undrawn pile.
+
+        Args:
+            cards_iterator (iterator): The cards to put.
+        """
+        self._undrawn = list(cards_iterator) + self._undrawn
 
     def put_discard(self, card):
         """
@@ -117,6 +123,9 @@ class Piles:
 
 
 class Content:
+    """
+    Holds all cards in different places.
+    """
 
     def __init__(self, undrawn_cards, discarded=None, limbo=None, hand=None, explored=None, opened=None):
         self._piles = Piles(undrawn_cards, discarded, limbo)
@@ -153,6 +162,9 @@ class Content:
         return self._hand
 
     def copy(self):
+        """
+        Copy a content.
+        """
         return Content(
             undrawn_cards=list(self._piles.undrawn),
             discarded=list(self._piles.discarded),
@@ -163,6 +175,9 @@ class Content:
 
 
 def replenish_hand(content):
+    """
+    Replesh hand for `content`.
+    """
     while len(content.hand) < 5:
         card = content.piles.draw()[0]
         if is_location(card):

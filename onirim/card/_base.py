@@ -25,22 +25,18 @@ class Card:
     """
     A card in onirim.
 
-    All cards in onirim inherits from this class.
+    All cards in onirim inherits from this class. Methods called by some event
+    has a single parameter `core` (:py:class:`onirim.core.Core`) for accessing the game
+    information.
     """
 
     _color = None
     _kind = None
 
     def _color_name(self):
-        """
-        Get the name of its color.
-        """
         return self._color.name if self._color else "nocolor"
 
     def _class_name(self):
-        """
-        Get the name of its class.
-        """
         return self.__class__.__name__[1:].lower()
 
     @property
@@ -67,22 +63,18 @@ class Card:
     def drawn(self, core):
         """
         Called while this card is drawn.
-
-        Args:
-            agent (onirim.agent.Agent): The agent of onirim.
-            content (onirim.component.Content): The content of onirim.
         """
         raise NotImplementedError
 
     def play(self, core):
         """
-        Called while a card is played.
+        Called while this card is played.
         """
         raise NotImplementedError
 
     def discard(self, core):
         """
-        Called while a card is discarded.
+        Called while this card is discarded.
         """
         raise NotImplementedError
 

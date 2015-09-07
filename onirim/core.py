@@ -6,6 +6,11 @@ from onirim import exception
 
 
 class Core:
+    """
+    All components and callbacks without game logic.
+    """
+
+
     def __init__(self, actor, observer, content):
         self._actor = actor
         self._observer = observer
@@ -13,18 +18,30 @@ class Core:
 
     @property
     def actor(self):
+        """
+        The actor of a game.
+        """
         return self._actor
 
     @property
     def observer(self):
+        """
+        The observer of a game.
+        """
         return self._observer
 
     @property
     def content(self):
+        """
+        The content of a game.
+        """
         return self._content
 
 
 class Flow:
+    """
+    The game flow here.
+    """
 
     def __init__(self, core):
         self._core = core
@@ -57,7 +74,12 @@ class Flow:
         self._core.content.piles.shuffle_limbo_to_undrawn()
 
     def whole(self):
-        """Run an Onirim and return the result."""
+        """
+        Run an Onirim and return the result.
+
+        Returns:
+            True if win, False if lose, None if other exception thrown.
+        """
         try:
             self.setup()
             while True:
@@ -76,4 +98,10 @@ class Flow:
 
 
 def run(actor, observer, content):
+    """
+    Shortcut to run an Onirim and return the result.
+
+    Returns:
+        True if win, False if lose, None if other exception thrown.
+    """
     return Flow(Core(actor, observer, content)).whole()
