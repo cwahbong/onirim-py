@@ -117,9 +117,10 @@ class Piles:
         """
         Shuffle limbo pile back to undrawn pile.
         """
-        self._undrawn += self._limbo
-        self._limbo = []
-        random.shuffle(self._undrawn)
+        if self._limbo:
+            self._undrawn += self._limbo
+            self._limbo = []
+            random.shuffle(self._undrawn)
 
 
 class Content:
