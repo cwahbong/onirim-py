@@ -223,12 +223,17 @@ def combo_count(content):
 def do_evaluate(content):
     # Invalid game state
     if content is None:
-        return -100000000
+        return -10 ** 20
 
-    # Prevent discarding a door
+    score = 0
+    known_lose = False
+
+    # Door discarded, but still try its best
     for card in content.piles.discarded:
-        if onirim.card.is_door(card):
-            return -100000000
+        if onirim.card.is_door(card) and not known_lose:
+            score -= 10 ** 17
+            known_lose = True
+            break
 
     if content.explored:
         last_explored = content.explored[-1]
@@ -239,9 +244,28 @@ def do_evaluate(content):
     nondiscard = content.piles.undrawn + content.piles.limbo + content.hand
     nondiscard_card_counter = card_counter(nondiscard)
 
-    score = 0
+    hand_combo = combo_count(content)
+
+    # Prevent no card to win, but still try its best
+    for color in onirim.card.Color:
+        if opened_color_counter[color] == 2:
+            continue
+        sun_count = nondiscard_card_counter[onirim.card.sun(color)]
+        moon_count = nondiscard_card_counter[onirim.card.moon(color)]
+        key_count = nondiscard_card_counter[onirim.card.key(color)]
+        need_open = 2 - opened_color_counter[color]
+        has_combo = 0
+        if content.explored and color == content.explored[-1].color:
+            has_combo = hand_combo
+        if (sun_count + moon_count + has_combo) / 3 + key_count < need_open:
+            if not known_lose:
+                known_lose = True
+                score -= 10 ** 16
+
     for card in nondiscard:
-        if not onirim.card.is_location(card):
+        if onirim.card.is_nightmare(card):
+            score -= 10000000
+        elif onirim.card.is_door(card):
             score -= 100000
 
     # for keys
@@ -254,7 +278,7 @@ def do_evaluate(content):
             score += key_score
 
     # for three combo
-    hand_combo = combo_count(content)
+
     combo_weight = 2 - opened_color_counter[last_color]
     score += hand_combo * 5000 * combo_weight
 
