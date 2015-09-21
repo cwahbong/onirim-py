@@ -260,6 +260,7 @@ def do_evaluate(content):
 
     color_cards = set(c for c in content.hand if c.color == last_color
                       and c.kind != onirim.card.LocationKind.key)
+    max_cont_count = 0
     for card_perm in itertools.permutations(color_cards):
         prev_card = last_explored
         cont_count = 0
@@ -269,7 +270,8 @@ def do_evaluate(content):
             else:
                 break
             prev_card = card
-    cont_combo = min(3 - hand_combo, cont_count)
+        max_cont_count = max(max_cont_count, cont_count)
+    cont_combo = min(3 - hand_combo, max_cont_count)
     score += cont_combo * 4000 * combo_weight
 
     # for card discarding
