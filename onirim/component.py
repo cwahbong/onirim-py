@@ -1,7 +1,11 @@
+import logging
 import random
 
 from onirim.card._utils import is_location
 from onirim import exception
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class CardNotEnoughException(exception.Onirim):
@@ -56,7 +60,13 @@ class Piles:
             #     the only Non-kind card that has a color is a door.
             if card.kind == None and card.color == color:
                 self._undrawn.remove(card)
+                LOGGER.debug(
+                    "A door card is pulled from undrawn pile, color=%s",
+                    card._color_name())
                 return card
+        LOGGER.debug(
+            "Try to pull a door card from undrawn pile but None, color=%s",
+            card._color_name())
         return None
 
     def draw(self, num=1):
@@ -78,6 +88,8 @@ class Piles:
         if num < 0:
             raise ValueError("Negative card number.")
         drawn, self._undrawn = self._undrawn[:num], self._undrawn[num:]
+        LOGGER.debug(
+            "Draw cards from undrawn pile, %s.", drawn)
         return drawn
 
     def put_undrawn_iter(self, cards_iterator):
@@ -88,6 +100,7 @@ class Piles:
             cards_iterator (iterator): The cards to put.
         """
         self._undrawn = list(cards_iterator) + self._undrawn
+        LOGGER.debug("Put cards onto undrawn pile. TODO detail")
 
     def put_discard(self, card):
         """
@@ -97,6 +110,10 @@ class Piles:
             card (onirim.card.Card): The card to discard.
         """
         self._discarded.append(card)
+        LOGGER.debug(
+            "Put a card to disacrded pile, color=%s, kind=%s.",
+            card._color_name(),
+            card._kind_name())
 
     def put_limbo(self, card):
         """
@@ -106,12 +123,17 @@ class Piles:
             card (onirim.card.Card): The card to discard.
         """
         self._limbo.append(card)
+        LOGGER.debug(
+            "Put a card to limbo pile, color=%s, kind=%s.",
+            card._color_name(),
+            card._kind_name())
 
     def shuffle_undrawn(self):
         """
         Shuffle the undrawn pile.
         """
         random.shuffle(self._undrawn)
+        LOGGER.debug("Undrawn pile shuffled.")
 
     def shuffle_limbo_to_undrawn(self):
         """
@@ -121,6 +143,7 @@ class Piles:
             self._undrawn += self._limbo
             self._limbo = []
             random.shuffle(self._undrawn)
+            LOGGER.debug("Shuffle limbo to undrawn pile.")
 
 
 class Content:

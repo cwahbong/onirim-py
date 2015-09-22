@@ -1,8 +1,13 @@
 """Location cards."""
 
+import logging
+
 from onirim.card._base import ColorCard
 from onirim import exception
 from onirim import util
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class LocationKind(util.AutoNumberEnum):
@@ -44,10 +49,10 @@ class _Location(ColorCard):
     def _class_name(self):
         return "{} location".format(self._kind.name)
 
-    def drawn(self, core):
+    def _do_drawn(self, core):
         core.content.hand.append(self)
 
-    def play(self, core):
+    def _do_play(self, core):
         observer = core.observer
         content = core.content
         if content.explored and content.explored[-1].kind == self.kind:
@@ -70,7 +75,7 @@ class _Location(ColorCard):
         """
         pass
 
-    def discard(self, core):
+    def _do_discard(self, core):
         content = core.content
         content.hand.remove(self)
         content.piles.put_discard(self)
@@ -116,6 +121,10 @@ class _KeyLocation(_Location):
 
         drawn = content.piles.draw(5)
         discarded_idx, back_idxes = actor.key_discard_react(core.content, drawn)
+        LOGGER.info(
+            "Agent choose key discard react %s, %s",
+            discarded_idx,
+            back_idxes)
         # TODO check returned value
 
         content.piles.put_discard(drawn[discarded_idx])

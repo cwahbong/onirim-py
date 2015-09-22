@@ -2,11 +2,16 @@
 Inner module for nightmare card.
 """
 
+import logging
+
 
 from onirim.card._base import Card
 from onirim.card._location import LocationKind
 from onirim import action
 from onirim import component
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 def _by_key(content, **kwargs):
@@ -19,6 +24,7 @@ def _by_key(content, **kwargs):
         raise ValueError("Not a key")
     content.hand.remove(card)
     content.piles.put_discard(card)
+    LOGGER.debug("Nightmare resolved by key.")
 
 
 def _by_door(content, **kwargs):
@@ -29,6 +35,7 @@ def _by_door(content, **kwargs):
     card = content.opened[idx]
     content.opened.remove(card)
     content.piles.put_limbo(card)
+    LOGGER.debug("Nightmare resolved by door.")
 
 
 def _by_hand(content, **kwargs):
@@ -39,6 +46,7 @@ def _by_hand(content, **kwargs):
         content.piles.put_discard(card)
     content.hand.clear()
     component.replenish_hand(content)
+    LOGGER.debug("Nightmare resolved by hand.")
 
 
 def _by_deck(content, **kwargs):
@@ -50,6 +58,7 @@ def _by_deck(content, **kwargs):
             content.piles.put_limbo(card)
         else:
             content.piles.put_discard(card)
+    LOGGER.debug("Nightmare resolved by deck.")
 
 
 _RESOLVE = {
@@ -63,10 +72,14 @@ _RESOLVE = {
 class _Nightmare(Card):
     """Nightmare card."""
 
-    def drawn(self, core):
+    def _do_drawn(self, core):
         actor = core.actor
         content = core.content
         nightmare_action, additional = actor.nightmare_action(content)
+        LOGGER.info(
+            "Actor choose nightmare_action %s, additional %s.",
+            nightmare_action.name,
+            additional)
         _RESOLVE[nightmare_action](content, **additional)
         content.piles.put_discard(self)
 

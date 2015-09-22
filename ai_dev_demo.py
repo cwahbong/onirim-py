@@ -5,6 +5,7 @@ import onirim.data
 import onirim.tool
 
 import itertools
+import logging
 import operator
 
 
@@ -195,6 +196,11 @@ def evaluate(content):
 
 
 def __main__():
+    logging.basicConfig(
+        filename="ai_dev_demo.log",
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        level=logging.WARNING)
+
     actor = Evaluator(evaluate)
     observer = onirim.agent.ProfiledObserver()
     content_fac = onirim.data.starting_content

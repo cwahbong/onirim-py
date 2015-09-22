@@ -2,7 +2,12 @@
 Inner module for enumerations and base types.
 """
 
+import logging
+
 from onirim import util
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Color(util.AutoNumberEnum):
@@ -36,6 +41,9 @@ class Card:
     def _color_name(self):
         return self._color.name if self._color else "nocolor"
 
+    def _kind_name(self):
+        return self._kind.name if self._kind else "nokind"
+
     def _class_name(self):
         return self.__class__.__name__[1:].lower()
 
@@ -60,23 +68,41 @@ class Card:
         """
         return self._kind
 
+    def _do_drawn(self, core):
+        raise NotImplementedError
+
     def drawn(self, core):
         """
         Called while this card is drawn.
         """
+        LOGGER.debug("A card is drawn, %r.", self)
+        self._do_drawn(core)
+
+    def _do_play(self, core):
         raise NotImplementedError
 
     def play(self, core):
         """
         Called while this card is played.
         """
+        LOGGER.debug(
+            "A card is played, color=%s, kind=%s.",
+            self._color_name(),
+            self._kind_name())
+        self._do_play(core)
+
+    def _do_discard(self, core):
         raise NotImplementedError
 
     def discard(self, core):
         """
         Called while this card is discarded.
         """
-        raise NotImplementedError
+        LOGGER.debug(
+            "A card is discarded, color=%s, kind=%s.",
+            self._color_name(),
+            self._kind_name())
+        self._do_discard(core)
 
     def __eq__(self, other):
         return self._kind == other.kind and self._color == other.color

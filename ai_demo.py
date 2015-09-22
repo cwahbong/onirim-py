@@ -6,6 +6,7 @@ import onirim.data
 import onirim.tool
 
 import collections
+import logging
 import operator
 import random
 
@@ -300,6 +301,12 @@ class Actor:
 
 
 def __main__():
+    logging.basicConfig(
+        filename="ai_demo.log",
+        format="{asctime} {levelname:5} {name} - {message}",
+        style="{",
+        level=logging.WARNING)
+
     actor = Actor()
     observer = onirim.agent.ProfiledObserver()
     content_fac = onirim.data.starting_content

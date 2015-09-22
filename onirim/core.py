@@ -1,8 +1,13 @@
 """Onirim logic."""
 
+import logging
+
 from onirim import action
 from onirim import component
 from onirim import exception
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Core:
@@ -55,6 +60,10 @@ class Flow:
     def phase_1(self):
         """The first phase of a turn."""
         phase_1_action, idx = self._core.actor.phase_1_action(self._core.content)
+        LOGGER.info(
+            "Actor choose phase 1 action %s, %d.",
+            phase_1_action.name,
+            idx)
         card = self._core.content.hand[idx]
         card_on = {
             action.Phase1.play: card.play,
@@ -81,19 +90,26 @@ class Flow:
             True if win, False if lose, None if other exception thrown.
         """
         try:
+            turn = 0
             self.setup()
+            LOGGER.info("Game initialized")
             while True:
+                turn += 1
+                LOGGER.info("Turn %d start", turn)
                 self.phase_1()
                 self.phase_2()
                 self.phase_3()
+                LOGGER.info("Turn %d end", turn)
         except exception.Win:
             self._core.observer.on_win(self._core.content)
+            LOGGER.info("--- Win ---")
             return True
         except component.CardNotEnoughException:
             self._core.observer.on_lose(self._core.content)
+            LOGGER.info("--- Lose ---")
             return False
-        except exception.Onirim as exp:
-            print("other errors: {}", exp)
+        except exception.Onirim:
+            LOGGER.exception("Onirim error occured.")
             return None
 
 
