@@ -87,10 +87,10 @@ BY_HAND_PARAMS = (
         opened=[]
         ),
     component.Content(
-        undrawn_cards=[],
+        undrawn_cards=[card.sun(card.Color.red)] * 5,
         discarded=[card.moon(card.Color.blue)] * 5 + [card.nightmare()],
         limbo=[],
-        hand=[card.sun(card.Color.red)] * 5,
+        hand=[],
         explored=[],
         opened=[]
         ),
