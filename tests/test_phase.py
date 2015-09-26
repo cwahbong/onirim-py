@@ -90,23 +90,3 @@ def test_phase_2_draw_door_win():
     flow = core.Flow(core.Core(win_actor, agent.Observer(), content))
     with pytest.raises(exception.Win):
         flow.phase_2()
-
-
-class NightmareHandActor(agent.Actor):
-
-    def nightmare_action(self, content):
-        return action.Nightmare.by_hand, {}
-
-
-def test_phase_2_draw_multiple_nightmare():
-    nightmare_actor = NightmareHandActor()
-    content = component.Content(
-        undrawn_cards=[card.nightmare()] * 2 + [card.moon(card.Color.blue)] * 5,
-        hand=[card.sun(card.Color.red)] * 4)
-    content_after = component.Content(
-        undrawn_cards=[],
-        hand=[card.moon(card.Color.blue)] * 5,
-        discarded=[card.sun(card.Color.red)] * 4 + [card.nightmare()] * 2)
-    flow = core.Flow(core.Core(nightmare_actor, agent.Observer(), content))
-    flow.phase_2()
-    assert content == content_after

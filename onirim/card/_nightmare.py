@@ -38,6 +38,7 @@ def _by_hand(content, **kwargs):
     for card in content.hand:
         content.piles.put_discard(card)
     content.hand.clear()
+    component.replenish_hand(content)
 
 
 def _by_deck(content, **kwargs):
