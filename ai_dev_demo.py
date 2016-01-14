@@ -5,9 +5,12 @@ import onirim.data
 import onirim.tool
 
 import collections
+import concurrent.futures
 import itertools
 import logging
+import math
 import operator
+import statistics
 
 
 def max_index(iterator):
@@ -315,22 +318,64 @@ def evaluate(content):
         print("ERR", e)
 
 
+def print_stat(data):
+    mean = statistics.mean(data)
+    if mean == 0:
+        print("mean: 0")
+        return
+    stdev = statistics.stdev(data, mean)
+    sem = stdev / math.sqrt(len(data))
+    res_fmt = "mean: {:.2f}, stdev: {:.2f}({:5.2f}%), sem: {:.2f}({:5.2f}%)"
+    print(res_fmt.format(mean, stdev, stdev / mean * 100, sem, sem / mean * 100))
+
+
+def run_group(times, actor, observer, content_fac):
+    for _ in range(times):
+        onirim.core.run(actor, observer, content_fac())
+    return observer
+
+
 def __main__():
     logging.basicConfig(
         filename="ai_dev_demo.log",
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         level=logging.WARNING)
 
-    actor = Evaluator(evaluate)
-    observer = onirim.agent.ProfiledObserver()
-    content_fac = onirim.data.starting_content
-    onirim.tool.progressed_run(1000, actor, observer, content_fac)
+    group_num = 50
+    group_size = 30
 
-    print("{}/{}".format(observer.win, observer.total))
-    print("Opened door: {}".format(observer.opened_door))
-    print("Opened by keys: {}".format(observer.opened_door_by_key))
-    print("Keys discarded: {}".format(observer.key_discarded))
-    print(str(observer.opened_distribution))
+    executor = concurrent.futures.ProcessPoolExecutor()
+    actor = Evaluator(evaluate)
+    content_fac = onirim.data.starting_content
+    params = ((group_size, actor, onirim.agent.ProfiledObserver(),
+               content_fac) for _ in range(group_num))
+    observers = []
+    for observer in onirim.tool.progressed(executor.map(run_group, *zip(*params)), group_num):
+        observers.append(observer)
+
+    print("{} group(s) with size {}".format(group_num, group_size))
+
+    print("--- Won ratio --- ")
+    wons = list(observer.win / group_size for observer in observers)
+    print_stat(wons)
+
+    print("--- Opened doors --- ")
+    opens = list(observer.opened_door / group_size for observer in observers)
+    print_stat(opens)
+
+    print("--- Opened by keys ---")
+    by_keys = list(observer.opened_door_by_key / group_size for observer in observers)
+    print_stat(by_keys)
+
+    print("--- Key discarded ---")
+    keys_discarded = list(observer.key_discarded / group_size for observer in observers)
+    print_stat(keys_discarded)
+
+    for door_count in range(8, -1, -1):
+        print("--- Open {} doors ratio ---".format(door_count))
+        door_count = list(observer.opened_distribution[door_count] / group_size
+                          for observer in observers)
+        print_stat(door_count)
 
 if __name__ == "__main__":
     __main__()
