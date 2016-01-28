@@ -264,6 +264,12 @@ def do_evaluate(content):
             if not known_lose:
                 known_lose = True
                 score -= 10 ** 16
+        else:
+            count_bound = need_open - key_count - has_combo
+            if moon_count < count_bound or sun_count < count_bound:
+                if not known_lose:
+                    known_lose = True
+                    score -= 10 ** 16
 
     for card in nondiscard:
         if onirim.card.is_nightmare(card):
@@ -283,7 +289,9 @@ def do_evaluate(content):
     # for three combo
 
     combo_weight = 2 - opened_color_counter[last_color]
-    score += hand_combo * 5000 * combo_weight
+    if combo_weight:
+        combo_weight = 1 + 0.1 * combo_weight
+    score += hand_combo * 6000 * combo_weight
 
     color_cards = set(c for c in content.hand if c.color == last_color
                       and c.kind != onirim.card.LocationKind.key)
@@ -308,6 +316,8 @@ def do_evaluate(content):
         count = min(sun_count, moon_count)
         weight = 2 - opened_color_counter[color]
         score += (1 - 0.9 ** count) / (1 - 0.9) * 500 * weight
+        useless_count = max(sun_count, moon_count) - count
+        score += (1 - 0.9 ** useless_count) / (1 - 0.9) * 5 * weight
     return score
 
 
