@@ -223,81 +223,109 @@ def combo_count(content):
     return same_count % 3
 
 
-def do_evaluate(content):
-    # Invalid game state
-    if content is None:
-        return -10 ** 20
+class ColorCounter:
 
-    score = 0
-    known_lose = False
+    def __init__(self, content):
+        self.opened = color_counter(content.opened)
 
-    # Door discarded, but still try its best
-    for card in content.piles.discarded:
-        if onirim.card.is_door(card) and not known_lose:
-            score -= 10 ** 17
-            known_lose = True
-            break
 
-    if content.explored:
-        last_explored = content.explored[-1]
-    else:
-        last_explored = onirim.card.nightmare()
-    last_color = last_explored.color
-    opened_color_counter = color_counter(content.opened)
-    nondiscard = content.piles.undrawn + content.piles.limbo + content.hand
-    nondiscard_card_counter = card_counter(nondiscard)
+class CardCounter:
 
-    hand_combo = combo_count(content)
+    def __init__(self, content):
+        nondiscarded = content.piles.undrawn + content.piles.limbo + content.hand
+        self.nondiscarded = card_counter(nondiscarded)
+        self.discarded = card_counter(content.piles.discarded)
+        self.hand = card_counter(content.hand)
 
-    # Prevent no card to win, but still try its best
+
+class Counters:
+
+    def __init__(self, content):
+        self.card = CardCounter(content)
+        self.color = ColorCounter(content)
+        self.combo = combo_count(content)
+        self.combos = content.explored[-self.combo:] if content.explored else []
+
+
+def door_lose_check(counters):
     for color in onirim.card.Color:
-        if opened_color_counter[color] == 2:
+        if counters.card.discarded[onirim.card.door(color)]:
+            return True
+    return False
+
+
+def location_lose_check(counters):
+    for color in onirim.card.Color:
+        opened = counters.color.opened[color]
+        if opened == 2:
             continue
-        sun_count = nondiscard_card_counter[onirim.card.sun(color)]
-        moon_count = nondiscard_card_counter[onirim.card.moon(color)]
-        key_count = nondiscard_card_counter[onirim.card.key(color)]
-        need_open = 2 - opened_color_counter[color]
+        sun_count = counters.card.nondiscarded[onirim.card.sun(color)]
+        moon_count = counters.card.nondiscarded[onirim.card.moon(color)]
+        key_count = counters.card.nondiscarded[onirim.card.key(color)]
+        need_open = 2 - opened
         has_combo = 0
-        if content.explored and color == content.explored[-1].color:
-            has_combo = hand_combo
+        if counters.combos and color == counters.combos[-1].color:
+            has_combo = counters.combo
         if (sun_count + moon_count + has_combo) / 3 + key_count < need_open:
-            if not known_lose:
-                known_lose = True
-                score -= 10 ** 16
+            return True
         else:
             count_bound = need_open - key_count - has_combo
             if moon_count < count_bound or sun_count < count_bound:
-                if not known_lose:
-                    known_lose = True
-                    score -= 10 ** 16
+                return True
+    return False
 
-    for card in nondiscard:
-        if onirim.card.is_nightmare(card):
-            score -= 10000000
-        elif onirim.card.is_door(card):
-            score -= 100000
 
-    # for keys
+def key_score(counters, color):
+    opened_count = counters.color.opened[color]
+    key_count = counters.card.nondiscarded[onirim.card.key(color)]
+    if not key_count:
+        return 0
+    score = (1 - 0.99 ** key_count) / (1 - 0.99) * 10000
+    score *= 1 + 0.1 * (2 - opened_count)
+    return score
+
+
+def sun_moon_score(counters, color):
+    sun_count = counters.card.nondiscarded[onirim.card.sun(color)]
+    moon_count = counters.card.nondiscarded[onirim.card.moon(color)]
+    count = min(sun_count, moon_count)
+    weight = 2 - counters.color.opened[color]
+    score = (1 - 0.9 ** count) / (1 - 0.9) * 500 * weight
+    useless_count = max(sun_count, moon_count) - count
+    score += (1 - 0.9 ** useless_count) / (1 - 0.9) * 5 * weight
+    return score
+
+
+def nightmare_score(counters):
+    return counters.card.nondiscarded[onirim.card.nightmare()] * -10000000
+
+
+def door_score(counters):
+    score = 0
     for color in onirim.card.Color:
-        opened_count = opened_color_counter[color]
-        key_count = nondiscard_card_counter[onirim.card.key(color)]
-        if key_count:
-            key_score = (1 - 0.99 ** key_count) / (1 - 0.99) * 10000
-            key_score *= 1 + 0.1 * (2 - opened_count)
-            score += key_score
+        score += counters.card.nondiscarded[onirim.card.door(color)] * -100000
+    return score
 
-    # for three combo
 
-    combo_weight = 2 - opened_color_counter[last_color]
+def three_combo_score(counters):
+    score = 0
+
+    last_card = counters.combos[-1] if counters.combos else onirim.card.nightmare()
+    last_color = last_card.color
+    combo_weight = 2 - counters.color.opened[last_color]
     if combo_weight:
         combo_weight = 1 + 0.1 * combo_weight
-    score += hand_combo * 6000 * combo_weight
+    score += counters.combo * 6000 * combo_weight
 
-    color_cards = set(c for c in content.hand if c.color == last_color
-                      and c.kind != onirim.card.LocationKind.key)
+    color_cards = []
+    if last_color is not None:
+        last_color_sun = onirim.card.sun(last_color)
+        last_color_moon = onirim.card.moon(last_color)
+        for last_color_card in last_color_sun, last_color_moon:
+            color_cards += [last_color_card] * counters.card.hand[last_color_card]
     max_cont_count = 0
     for card_perm in itertools.permutations(color_cards):
-        prev_card = last_explored
+        prev_card = last_card
         cont_count = 0
         for card in card_perm:
             if card.kind != prev_card.kind:
@@ -306,18 +334,40 @@ def do_evaluate(content):
                 break
             prev_card = card
         max_cont_count = max(max_cont_count, cont_count)
-    cont_combo = min(3 - hand_combo, max_cont_count)
+    cont_combo = min(3 - counters.combo, max_cont_count)
     score += cont_combo * 4000 * combo_weight
+    return score
 
-    # for card discarding
+
+def lose_checks(counters):
+    if door_lose_check(counters):
+        return - 10 ** 17
+    elif location_lose_check(counters):
+        return - 10 ** 16
+    return 0
+
+
+def win_checks(counters):
+    score = 0
+    score += nightmare_score(counters)
+    score += door_score(counters)
     for color in onirim.card.Color:
-        sun_count = nondiscard_card_counter[onirim.card.sun(color)]
-        moon_count = nondiscard_card_counter[onirim.card.moon(color)]
-        count = min(sun_count, moon_count)
-        weight = 2 - opened_color_counter[color]
-        score += (1 - 0.9 ** count) / (1 - 0.9) * 500 * weight
-        useless_count = max(sun_count, moon_count) - count
-        score += (1 - 0.9 ** useless_count) / (1 - 0.9) * 5 * weight
+        score += key_score(counters, color)
+        score += sun_moon_score(counters, color)
+    score += three_combo_score(counters)
+    return score
+
+
+def do_evaluate(content):
+    # Invalid game state
+    if content is None:
+        return -10 ** 20
+
+    counters = Counters(content)
+
+    score = 0
+    score += lose_checks(counters)
+    score += win_checks(counters)
     return score
 
 
