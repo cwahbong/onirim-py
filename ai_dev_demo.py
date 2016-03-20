@@ -358,6 +358,24 @@ def win_checks(counters):
     return score
 
 
+def may_lose_check(counters):
+    res = 0
+    for color in onirim.card.Color:
+        opened = counters.color.opened[color]
+        if opened == 2:
+            continue
+        sun_count = counters.card.nondiscarded[onirim.card.sun(color)]
+        moon_count = counters.card.nondiscarded[onirim.card.moon(color)]
+        key_count = counters.card.nondiscarded[onirim.card.key(color)]
+        need_open = 2 - opened
+        has_combo = 0
+        if counters.combos and color == counters.combos[-1].color:
+            has_combo = counters.combo
+        if max(0, sun_count + moon_count + has_combo - 1) / 3 + key_count < need_open:
+            res = min(res, -10 ** 12)
+    return res
+
+
 def do_evaluate(content):
     # Invalid game state
     if content is None:
@@ -368,6 +386,7 @@ def do_evaluate(content):
     score = 0
     score += lose_checks(counters)
     score += win_checks(counters)
+    score += may_lose_check(counters)
     return score
 
 
